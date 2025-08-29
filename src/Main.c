@@ -6,7 +6,7 @@ int main(int argc,char** argv){
         return 1;
     }
     if(argc<=2){
-        printf("Missing Output File .asm/s!\n");
+        printf("Missing Output File .iralx!\n");
         return 1;
     }
 

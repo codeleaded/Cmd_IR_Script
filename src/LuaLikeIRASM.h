@@ -104,6 +104,110 @@ CStr LuaLikeIR_Variablename_Next(LuaLikeIR* ll,CStr name,int offset){
     return stack_name;
 }
 
+void LuaLikeIR_LogicAddPath(LuaLikeIR* ll){
+    if(ll->ev.sc.range>=ll->logicpath.size){
+        while(ll->ev.sc.range>=ll->logicpath.size) Vector_Push(&ll->logicpath,(LogicBlock[]){ 0,0 });
+    }else{
+        LogicBlock* r = (LogicBlock*)Vector_Get(&ll->logicpath,ll->ev.sc.range);
+        r->count++;
+    }
+}
+void LuaLikeIR_LogicAddExtend(LuaLikeIR* ll){
+    if(ll->ev.sc.range>=ll->logicpath.size){
+        while(ll->ev.sc.range>=ll->logicpath.size) Vector_Push(&ll->logicpath,(LogicBlock[]){ 0,0 });
+    }else{
+        LogicBlock* r = (LogicBlock*)Vector_Get(&ll->logicpath,ll->ev.sc.range);
+        r->extend++;
+    }
+}
+int LuaLikeIR_GetLogicPath(LuaLikeIR* ll,Range r){
+    if(r<0){
+        return -1;
+    }
+    if(r>=ll->logicpath.size){
+        while(ll->ev.sc.range>=ll->logicpath.size) Vector_Push(&ll->logicpath,(LogicBlock[]){ 0,0 });
+        return 0;
+    }
+    return ((LogicBlock*)Vector_Get(&ll->logicpath,r))->count;
+}
+int LuaLikeIR_GetLogicExtend(LuaLikeIR* ll,Range r){
+    if(r<0){
+        return -1;
+    }
+    if(r>=ll->logicpath.size){
+        while(ll->ev.sc.range>=ll->logicpath.size) Vector_Push(&ll->logicpath,(LogicBlock[]){ 0,0 });
+        return 0;
+    }
+    return ((LogicBlock*)Vector_Get(&ll->logicpath,r))->extend;
+}
+CStr LuaLikeIR_Logic(LuaLikeIR* ll,char se,CStr type,Range r){
+    int lp = LuaLikeIR_GetLogicPath(ll,ll->ev.sc.range);
+    if(CStr_Cmp(type,"ELIF")){
+        int ex = LuaLikeIR_GetLogicExtend(ll,ll->ev.sc.range);
+        return CStr_Format("l.%d_%s%d_%d_%d",se,type,r,lp,ex);
+    }
+    return CStr_Format("l.%d_%s%d_%d",se,type,r,lp);
+}
+void LuaLikeIR_LogicCorrection(LuaLikeIR* ll,TokenMap* tm){
+    Token* t = (Token*)Vector_Get(tm,0);
+    
+    if(ll->logic==TOKEN_LUALIKE_IF){
+        int lp = LuaLikeIR_GetLogicPath(ll,ll->ev.sc.range);
+        if(t->tt==TOKEN_LUALIKE_ELIF || t->tt==TOKEN_LUALIKE_ELSE){
+            CStr log_label = LuaLikeIR_Logic(ll,1,LUALIKEIR_LOG,ll->ev.sc.range);
+            LuaLikeIR_Indentation_Appendf(ll,&ll->text,"jmp %s",log_label);
+            CStr_Free(&log_label);
+
+            CStr if_label = LuaLikeIR_Logic(ll,1,LUALIKEIR_IF,ll->ev.sc.range);
+            LuaLikeIR_Indentation_Appendf(ll,&ll->text,"%s:",if_label);
+            CStr_Free(&if_label);
+        }else{
+            CStr log_label = LuaLikeIR_Logic(ll,1,LUALIKEIR_LOG,ll->ev.sc.range);
+            LuaLikeIR_Indentation_Appendf(ll,&ll->text,"%s:",log_label);
+            CStr_Free(&log_label);
+        }
+    }else if(ll->logic==TOKEN_LUALIKE_ELIF){
+        int lp = LuaLikeIR_GetLogicPath(ll,ll->ev.sc.range);
+        if(t->tt==TOKEN_LUALIKE_ELIF || t->tt==TOKEN_LUALIKE_ELSE){
+            CStr log_label = LuaLikeIR_Logic(ll,1,LUALIKEIR_LOG,ll->ev.sc.range);
+            LuaLikeIR_Indentation_Appendf(ll,&ll->text,"jmp %s",log_label);
+            CStr_Free(&log_label);
+
+            CStr if_label = LuaLikeIR_Logic(ll,1,LUALIKEIR_ELIF,ll->ev.sc.range);
+            LuaLikeIR_Indentation_Appendf(ll,&ll->text,"%s:",if_label);
+            CStr_Free(&if_label);
+        }else{
+            CStr log_label = LuaLikeIR_Logic(ll,1,LUALIKEIR_LOG,ll->ev.sc.range);
+            LuaLikeIR_Indentation_Appendf(ll,&ll->text,"%s:",log_label);
+            CStr_Free(&log_label);
+        }
+    }else if(ll->logic==TOKEN_LUALIKE_ELSE){
+        int lp = LuaLikeIR_GetLogicPath(ll,ll->ev.sc.range);
+        CStr log_label = LuaLikeIR_Logic(ll,1,LUALIKEIR_LOG,ll->ev.sc.range);
+        LuaLikeIR_Indentation_Appendf(ll,&ll->text,"%s:",log_label);
+        CStr_Free(&log_label);
+    }else if(ll->logic==TOKEN_LUALIKE_WHILE){
+        int lp = LuaLikeIR_GetLogicPath(ll,ll->ev.sc.range);
+        CStr start_label = LuaLikeIR_Logic(ll,0,LUALIKEIR_WHILE,ll->ev.sc.range);
+        CStr end_label = LuaLikeIR_Logic(ll,1,LUALIKEIR_WHILE,ll->ev.sc.range);
+        LuaLikeIR_Indentation_Appendf(ll,&ll->text,"jmp %s",start_label);
+        LuaLikeIR_Indentation_Appendf(ll,&ll->text,"%s:",end_label);
+        CStr_Free(&end_label);
+        CStr_Free(&start_label);
+    }else if(ll->logic==TOKEN_LUALIKE_FOR){
+        int lp = LuaLikeIR_GetLogicPath(ll,ll->ev.sc.range);
+        CStr start_label = LuaLikeIR_Logic(ll,0,LUALIKEIR_FOR,ll->ev.sc.range);
+        CStr end_label = LuaLikeIR_Logic(ll,1,LUALIKEIR_FOR,ll->ev.sc.range);
+        LuaLikeIR_Indentation_Appendf(ll,&ll->text,"jmp %s",start_label);
+        LuaLikeIR_Indentation_Appendf(ll,&ll->text,"%s:",end_label);
+        CStr_Free(&end_label);
+        CStr_Free(&start_label);
+        Scope_Pop(&ll->ev.sc);// first possible decl in for ... , 
+    }
+
+    ll->logic = TOKEN_NONE;
+}
+
 /*
 void LuaLikeIR_Variable_BuildXX(LuaLikeIR* ll,CStr name,CStr type,int sizeonstack,int stack,char destroy){
     Scope_BuildInitVariable(&ll->ev.sc,name,type,(LuaLikeIRVariable[]){ LuaLikeIRVariable_New(stack,sizeonstack,destroy,ll) });
@@ -279,110 +383,6 @@ Function* LuaLikeIR_FunctionIn(LuaLikeIR* ll) {
         }
     }
     return NULL;
-}
-
-void LuaLikeIR_LogicAddPath(LuaLikeIR* ll){
-    if(ll->ev.sc.range>=ll->logicpath.size){
-        while(ll->ev.sc.range>=ll->logicpath.size) Vector_Push(&ll->logicpath,(LogicBlock[]){ 0,0 });
-    }else{
-        LogicBlock* r = (LogicBlock*)Vector_Get(&ll->logicpath,ll->ev.sc.range);
-        r->count++;
-    }
-}
-void LuaLikeIR_LogicAddExtend(LuaLikeIR* ll){
-    if(ll->ev.sc.range>=ll->logicpath.size){
-        while(ll->ev.sc.range>=ll->logicpath.size) Vector_Push(&ll->logicpath,(LogicBlock[]){ 0,0 });
-    }else{
-        LogicBlock* r = (LogicBlock*)Vector_Get(&ll->logicpath,ll->ev.sc.range);
-        r->extend++;
-    }
-}
-int LuaLikeIR_GetLogicPath(LuaLikeIR* ll,Range r){
-    if(r<0){
-        return -1;
-    }
-    if(r>=ll->logicpath.size){
-        while(ll->ev.sc.range>=ll->logicpath.size) Vector_Push(&ll->logicpath,(LogicBlock[]){ 0,0 });
-        return 0;
-    }
-    return ((LogicBlock*)Vector_Get(&ll->logicpath,r))->count;
-}
-int LuaLikeIR_GetLogicExtend(LuaLikeIR* ll,Range r){
-    if(r<0){
-        return -1;
-    }
-    if(r>=ll->logicpath.size){
-        while(ll->ev.sc.range>=ll->logicpath.size) Vector_Push(&ll->logicpath,(LogicBlock[]){ 0,0 });
-        return 0;
-    }
-    return ((LogicBlock*)Vector_Get(&ll->logicpath,r))->extend;
-}
-CStr LuaLikeIR_Logic(LuaLikeIR* ll,char se,CStr type,Range r){
-    int lp = LuaLikeIR_GetLogicPath(ll,ll->ev.sc.range);
-    if(CStr_Cmp(type,"ELIF")){
-        int ex = LuaLikeIR_GetLogicExtend(ll,ll->ev.sc.range);
-        return CStr_Format("l.%d_%s%d_%d_%d",se,type,r,lp,ex);
-    }
-    return CStr_Format("l.%d_%s%d_%d",se,type,r,lp);
-}
-void LuaLikeIR_LogicCorrection(LuaLikeIR* ll,TokenMap* tm){
-    Token* t = (Token*)Vector_Get(tm,0);
-    
-    if(ll->logic==TOKEN_LUALIKEIR_IF){
-        int lp = LuaLikeIR_GetLogicPath(ll,ll->ev.sc.range);
-        if(t->tt==TOKEN_LUALIKEIR_ELIF || t->tt==TOKEN_LUALIKEIR_ELSE){
-            CStr log_label = LuaLikeIR_Logic(ll,1,LUALIKEIR_LOG,ll->ev.sc.range);
-            LuaLikeIR_Indentation_Appendf(ll,&ll->text,"jmp %s",log_label);
-            CStr_Free(&log_label);
-
-            CStr if_label = LuaLikeIR_Logic(ll,1,LUALIKEIR_IF,ll->ev.sc.range);
-            LuaLikeIR_Indentation_Appendf(ll,&ll->text,"%s:",if_label);
-            CStr_Free(&if_label);
-        }else{
-            CStr log_label = LuaLikeIR_Logic(ll,1,LUALIKEIR_LOG,ll->ev.sc.range);
-            LuaLikeIR_Indentation_Appendf(ll,&ll->text,"%s:",log_label);
-            CStr_Free(&log_label);
-        }
-    }else if(ll->logic==TOKEN_LUALIKEIR_ELIF){
-        int lp = LuaLikeIR_GetLogicPath(ll,ll->ev.sc.range);
-        if(t->tt==TOKEN_LUALIKEIR_ELIF || t->tt==TOKEN_LUALIKEIR_ELSE){
-            CStr log_label = LuaLikeIR_Logic(ll,1,LUALIKEIR_LOG,ll->ev.sc.range);
-            LuaLikeIR_Indentation_Appendf(ll,&ll->text,"jmp %s",log_label);
-            CStr_Free(&log_label);
-
-            CStr if_label = LuaLikeIR_Logic(ll,1,LUALIKEIR_ELIF,ll->ev.sc.range);
-            LuaLikeIR_Indentation_Appendf(ll,&ll->text,"%s:",if_label);
-            CStr_Free(&if_label);
-        }else{
-            CStr log_label = LuaLikeIR_Logic(ll,1,LUALIKEIR_LOG,ll->ev.sc.range);
-            LuaLikeIR_Indentation_Appendf(ll,&ll->text,"%s:",log_label);
-            CStr_Free(&log_label);
-        }
-    }else if(ll->logic==TOKEN_LUALIKEIR_ELSE){
-        int lp = LuaLikeIR_GetLogicPath(ll,ll->ev.sc.range);
-        CStr log_label = LuaLikeIR_Logic(ll,1,LUALIKEIR_LOG,ll->ev.sc.range);
-        LuaLikeIR_Indentation_Appendf(ll,&ll->text,"%s:",log_label);
-        CStr_Free(&log_label);
-    }else if(ll->logic==TOKEN_LUALIKEIR_WHILE){
-        int lp = LuaLikeIR_GetLogicPath(ll,ll->ev.sc.range);
-        CStr start_label = LuaLikeIR_Logic(ll,0,LUALIKEIR_WHILE,ll->ev.sc.range);
-        CStr end_label = LuaLikeIR_Logic(ll,1,LUALIKEIR_WHILE,ll->ev.sc.range);
-        LuaLikeIR_Indentation_Appendf(ll,&ll->text,"jmp %s",start_label);
-        LuaLikeIR_Indentation_Appendf(ll,&ll->text,"%s:",end_label);
-        CStr_Free(&end_label);
-        CStr_Free(&start_label);
-    }else if(ll->logic==TOKEN_LUALIKEIR_FOR){
-        int lp = LuaLikeIR_GetLogicPath(ll,ll->ev.sc.range);
-        CStr start_label = LuaLikeIR_Logic(ll,0,LUALIKEIR_FOR,ll->ev.sc.range);
-        CStr end_label = LuaLikeIR_Logic(ll,1,LUALIKEIR_FOR,ll->ev.sc.range);
-        LuaLikeIR_Indentation_Appendf(ll,&ll->text,"jmp %s",start_label);
-        LuaLikeIR_Indentation_Appendf(ll,&ll->text,"%s:",end_label);
-        CStr_Free(&end_label);
-        CStr_Free(&start_label);
-        Scope_Pop(&ll->ev.sc);// first possible decl in for ... , 
-    }
-
-    ll->logic = TOKEN_NONE;
 }
 
 Boolean LuaLikeIR_TypeInt(CStr typename){

@@ -34,7 +34,7 @@ cleanlib:
 	rm -rf $(BIN_DIR)/*
 
 exe:
-	./$(TARGET) ./code/Main.iralx
+	./$(TARGET) ./code/Main.ll ./code/Main.iralx
 
 dg: clean
 	$(CC) $(CFLAGS) -g $(INCLUDES) ./$(SRC_DIR)/Main.c -o ./$(TARGET) $(LDFLAGS)

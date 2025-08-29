@@ -4,6 +4,13 @@
 #include "/home/codeleaded/System/Static/Library/AlxParser.h"
 #include "/home/codeleaded/System/Static/Library/LuaLikeDefines.h"
 
+#define LUALIKEIR_IF                         "IF"
+#define LUALIKEIR_ELIF                       "ELIF"
+#define LUALIKEIR_ELSE                       "ELSE"
+#define LUALIKEIR_WHILE                      "WHILE"
+#define LUALIKEIR_FOR                        "FOR"
+#define LUALIKEIR_LOG                        "LOG"
+
 #define LUALIKEIR_INDENTATION                "    "
 #define LUALIKEIR_INDENTATION_NONE           0
 #define LUALIKEIR_INDENTATION_FUNCTION       1

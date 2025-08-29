@@ -261,53 +261,6 @@ FunctionRT ShutingYard_From(LuaLikeIR* ll,TokenMap* tm){
     Token* Import = (Token*)Vector_Get(tm,2);
     Token* Asterisk = (Token*)Vector_Get(tm,3);
 
-    if(Asterisk->tt==TOKEN_LUALIKE_MUL){
-        ExternPackage ep = ExternPackage_New(ll->dllpath,Package->str,"Ex_Packer",&ll->ev.sc);
-        Vector_Push(&ll->ev.epm,&ep);
-    }else{
-        Vector funcs = Vector_New(sizeof(CStr));
-        for(int i = 3;i<tm->size;i+=2){
-            Token* func = (Token*)Vector_Get(tm,i);
-            
-            if(func->tt==TOKEN_STRING){
-                if(i<tm->size-1){
-                    Token* comma = (Token*)Vector_Get(tm,i+1);
-                    if(comma->tt!=TOKEN_COMMA){
-                        Enviroment_ErrorHandler(&ll->ev,"From: function need to be seperated with a [,]!\n");
-                        break;
-                    }
-                }
-
-                Vector_Push(&funcs,&func->str);
-            }else{
-                Enviroment_ErrorHandler(&ll->ev,"From: functions are listed here: %s!\n",func->str);
-                break;
-            }
-
-            if(i>=tm->size-1){
-                Vector_Push(&funcs,(CStr[]){ NULL });
-                ExternPackage ep = ExternPackage_Make(ll->dllpath,Package->str,"Ex_Packer",(CStr*)funcs.Memory,&ll->ev.sc);
-                
-                for(int i = 0;i<ep.efs.size;i++){
-                    ExternFunction* ef = (ExternFunction*)Vector_Get(&ep.efs,i);
-
-                    String builder = String_Make(Package->str);
-                    String_Append(&builder,"::");
-                    String_Append(&builder,ef->name);
-                    CStr realname = String_CStr(&builder);
-                    String_Free(&builder);
-                    //Enviroment_ErrorHandler(&ll->ev,"REAL: %s\n",realname);
-
-                    CStr_Set(&ef->name,realname);
-                    CStr_Free(&realname);
-                }
-
-                Vector_Push(&ll->ev.epm,&ep);
-            }
-        }
-        Vector_Free(&funcs);
-    }
-
     return FUNCTIONRT_NONE;
 }
 FunctionRT ShutingYard_Include(LuaLikeIR* ll,TokenMap* tm){
@@ -325,7 +278,7 @@ FunctionRT ShutingYard_Include(LuaLikeIR* ll,TokenMap* tm){
                 CVector_Push(&ll->filesstack,(CStr[]){ CStr_Cpy(realpath) });
                 CVector_Push(&ll->filesinc,(CStr[]){ CStr_Cpy(realpath) });
     
-                Interpreter_AddScript(&ll->ev,ll->ev.iter,realpath);
+                Compiler_AddScript(&ll->ev,ll->ev.iter,realpath);
             
                 CVector_PopTop(&ll->filesstack);
                 CStr_Free(&realpath);
@@ -343,291 +296,29 @@ FunctionRT ShutingYard_Include(LuaLikeIR* ll,TokenMap* tm){
     return FUNCTIONRT_NONE;
 }
 FunctionRT ShutingYard_Class(LuaLikeIR* ll,TokenMap* tm){
-    TT_Iter name = TokenMap_Find(tm,TOKEN_STRING);
-
-    if(name>=0){
-        Token* tname = (Token*)Vector_Get(tm,name);
-
-        Type* parent = Scope_FindType(&ll->ev.sc,LUALIKE_OBJ);
-        if(!parent){
-            Interpreter_ErrorHandler(&ll->ev,"Class -> Error: type %s which is needed for classes doesn't exist!",LUALIKE_OBJ);
-            return False;
-        }
-        
-        Type t = Type_Cpy(parent);
-        CStr_Set(&t.name,tname->str);
-        Type_SetAllOperators(&t,LUALIKE_OBJ,tname->str);
-        TypeMap_Push(&ll->ev.sc.types,&t);
-
-        CallPosition cp = CallPosition_New_N(TOKEN_LUALIKE_CLASS,ll->ev.iter,tname->str);
-        Vector_Push(&ll->ev.cs,&cp);
-    }else{
-        Interpreter_ErrorHandler(&ll->ev,"Class: keyword expected a class name!\n");
-    }
     return FUNCTIONRT_NONE;
 }
 
 FunctionRT ShutingYard_return(Enviroment* ev,TokenMap* tm){
-    if(tm->size==1){ // return: void
-        return Interpreter_FunctionReturn(ev);
-    }else{
-        CallPosition* cpp = CallStack_Peek(&ev->cs);
-
-        if(cpp->sy == FUNCTIONRT_NONE){
-            Variable* v = Scope_FindVariableLike(&ev->sc,".RETURN*",'*');
-
-            if(v){
-                Vector_Remove(&cpp->tm,0);
-                Vector_Add(&cpp->tm,(Token[]){ Token_By(TOKEN_STRING,v->name) },0);
-                Vector_Add(&cpp->tm,(Token[]){ Token_By(TOKEN_LUALIKE_ASS,"=") },1);
-            }else{
-                Enviroment_ErrorHandler(ev,"[Enviroment]: return: nowhere to return!\n");
-                return FUNCTIONRT_NONE;
-            }
-
-            TokenMap ptm = ShutingYard_Transform_D(&ev->sy,&cpp->tm);
-            Vector_Free(&cpp->tm);
-            
-            ev->sc.range++;
-            cpp->tm = ptm;
-            cpp->sy = FUNCTIONRT_UNFINISHED;
-        }
-
-        FunctionRT ret = ShutingYard_Execute_D(&ev->sy,tm,&ev->sc);
-        //Scope_Pop(&ev->sc);
-
-        if(ret==FUNCTIONRT_CALL || ret==FUNCTIONRT_ARG0)
-            return ret;
-        
-        return Interpreter_FunctionReturn(ev);
-    }
+    return FUNCTIONRT_NONE;
 }
 FunctionRT ShutingYard_end(Enviroment* ev,TokenMap* tm){
-    CallStack_Pop(&ev->cs);
-    TT_Type tt = CallStack_Back(&ev->cs);
-    
-    switch (tt){
-    case TOKEN_FUNCTION:
-        return Interpreter_FunctionReturn(ev);
-    case TOKEN_LUALIKE_IF:
-        Scope_Pop(&ev->sc);
-        return FUNCTIONRT_NONE;
-    case TOKEN_LUALIKE_ELIF:
-        Scope_Pop(&ev->sc);
-        return FUNCTIONRT_NONE;
-    case TOKEN_LUALIKE_ELSE:
-        Scope_Pop(&ev->sc);
-        return FUNCTIONRT_NONE;
-    case TOKEN_LUALIKE_WHILE:
-        Scope_Pop(&ev->sc);
-        CallStack_GoBack(&ev->cs,&ev->iter);
-        CallStack_Pop(&ev->cs);
-        return FUNCTIONRT_JMP;
-    case TOKEN_LUALIKE_FOR:
-        Scope_Pop(&ev->sc);
-        CallStack_GoBack(&ev->cs,&ev->iter);
-        CallStack_Pop(&ev->cs);
-        return FUNCTIONRT_JMP;
-    case TOKEN_NONE:
-        break;
-    default:
-        Enviroment_ErrorHandler(ev,"[Enviroment]: Call Stack top type is not defined: %d!\n",tt);
-        break;
-    }
     return FUNCTIONRT_NONE;
 }
 FunctionRT ShutingYard_if(Enviroment* ev,TokenMap* tm){
-    CallPosition* cpp = CallStack_Peek(&ev->cs);
-
-    if(cpp->sy == FUNCTIONRT_NONE){
-        Vector_Remove(tm,0);
-        
-        TokenMap ptm = ShutingYard_Transform_D(&ev->sy,tm);
-        Vector_Free(tm);
-        *tm = ptm;
-        
-        ev->sc.range++;
-        cpp->sy = FUNCTIONRT_UNFINISHED;
-    }
-
-    Boolean b = 0;
-    FunctionRT ret = Interpreter_CheckCondition(ev,tm,&b);
-    if(ret == FUNCTIONRT_NONE){
-        Scope_Pop(&ev->sc);
-        if(b == 0){
-            CallPosition cp = CallPosition_New(TOKEN_NONE,ev->iter);
-            Vector_Add(&ev->cs,&cp,ev->cs.size - 1);
-
-            Interpreter_IterateToTokens(ev,(TT_Type[]){
-                TOKEN_LUALIKE_ELIF,
-                TOKEN_LUALIKE_ELSE,
-                TOKEN_LUALIKE_END,
-                TOKEN_END
-            });
-            CallStack_Pop(&ev->cs);
-            return FUNCTIONRT_JMP;
-        }else{
-            CallPosition cp = CallPosition_New(TOKEN_LUALIKE_IF,ev->iter);
-            Vector_Add(&ev->cs,&cp,ev->cs.size - 1);
-            ev->sc.range++;
-            return FUNCTIONRT_NONE;
-        }
-    }
-    return ret;
+    return FUNCTIONRT_NONE;
 }
 FunctionRT ShutingYard_elif(Enviroment* ev,TokenMap* tm){
-    CallPosition* cpp = CallStack_Peek(&ev->cs);
-    
-    if(cpp->sy == FUNCTIONRT_NONE){
-        Vector_Remove(tm,0);
-        
-        TokenMap ptm = ShutingYard_Transform_D(&ev->sy,tm);
-        Vector_Free(tm);
-        *tm = ptm;
-        
-        ev->sc.range++;
-        cpp->sy = FUNCTIONRT_UNFINISHED;
-    }
-    
-    CallPosition* pcpp = CallStack_PrePeek(&ev->cs);
-    if(pcpp->type==TOKEN_LUALIKE_IF || pcpp->type==TOKEN_LUALIKE_ELIF){
-        Scope_Pop(&ev->sc);
-        Interpreter_IterateToTokens(ev,(TT_Type[]){
-            TOKEN_LUALIKE_END,
-            TOKEN_END
-        });
-        CallStack_Pop(&ev->cs);
-        return FUNCTIONRT_JMP;
-    }else{
-        Boolean b = 0;
-        FunctionRT ret = Interpreter_CheckCondition(ev,tm,&b);
-        if(ret == FUNCTIONRT_NONE){
-            Scope_Pop(&ev->sc);
-            if(b == 0){
-                Interpreter_IterateToTokens(ev,(TT_Type[]){
-                    TOKEN_LUALIKE_ELIF,
-                    TOKEN_LUALIKE_ELSE,
-                    TOKEN_LUALIKE_END,
-                    TOKEN_END
-                });
-                CallStack_Pop(&ev->cs);
-                return FUNCTIONRT_JMP;
-            }else{
-                CallPosition_Set(pcpp,(CallPosition[]){ CallPosition_New(TOKEN_LUALIKE_ELIF,ev->iter) });
-                ev->sc.range++;
-                return FUNCTIONRT_NONE;
-            }
-        }
-        return ret;
-    }
     return FUNCTIONRT_NONE;
 }
 FunctionRT ShutingYard_else(Enviroment* ev,TokenMap* tm){
-    CallPosition* pcpp = CallStack_PrePeek(&ev->cs);
-    if(pcpp->type==TOKEN_LUALIKE_IF || pcpp->type==TOKEN_LUALIKE_ELIF){
-        Interpreter_IterateToTokens(ev,(TT_Type[]){
-            TOKEN_LUALIKE_END,
-            TOKEN_END
-        });
-        CallStack_Pop(&ev->cs);
-        return FUNCTIONRT_JMP;
-    }else{
-        CallPosition_Set(pcpp,(CallPosition[]){ CallPosition_New(TOKEN_LUALIKE_ELSE,ev->iter) });
-        ev->sc.range++;
-        return FUNCTIONRT_NONE;
-    }
     return FUNCTIONRT_NONE;
 }
 FunctionRT ShutingYard_while(Enviroment* ev,TokenMap* tm){
-    CallPosition* cpp = CallStack_Peek(&ev->cs);
-    
-    if(cpp->sy == FUNCTIONRT_NONE){
-        Vector_Remove(tm,0);
-        
-        ev->sc.range++;
-        TokenMap ptm = ShutingYard_Transform_D(&ev->sy,tm);
-        Vector_Free(tm);
-        *tm = ptm;
-        cpp->sy = FUNCTIONRT_UNFINISHED;
-    }
-
-    Boolean b = 0;
-    FunctionRT ret = Interpreter_CheckCondition(ev,tm,&b);
-    if(ret == FUNCTIONRT_NONE){
-        Scope_Pop(&ev->sc);
-        
-        if(b == 0){
-            CallPosition cp = CallPosition_New(TOKEN_NONE,ev->iter);
-            Vector_Add(&ev->cs,&cp,ev->cs.size - 1);
-
-            Interpreter_IterateToTokens(ev,(TT_Type[]){
-                TOKEN_LUALIKE_END,
-                TOKEN_END
-            });
-            CallStack_Pop(&ev->cs);
-            return FUNCTIONRT_JMP;
-        }else{
-            CallPosition cp = CallPosition_New(TOKEN_LUALIKE_WHILE,ev->iter);
-            Vector_Add(&ev->cs,&cp,ev->cs.size - 1);
-            ev->sc.range++;
-            return FUNCTIONRT_NONE;
-        }
-    }
-    return ret;
+    return FUNCTIONRT_NONE;
 }
 FunctionRT ShutingYard_for(Enviroment* ev,TokenMap* tm){
-    TokenMap cpy = TokenMap_Cpy(tm);
-    Vector_Remove(&cpy,0);
-    
-    TokenMap initstatement = TokenMap_SubToToken(&cpy,TOKEN_SEMICOLON);
-    TokenMap statement = TokenMap_SubFromToken(&cpy,TOKEN_SEMICOLON);
-    TokenMap conditionstatement = TokenMap_SubToToken(&statement,TOKEN_SEMICOLON);
-    TokenMap dostatement = TokenMap_SubFromToken(&statement,TOKEN_SEMICOLON);
-
-    CallPosition* cp = CallStack_Peek(&ev->cs);
-    if(cp && cp->type==TOKEN_LUALIKE_FOR && cp->pos==ev->iter){
-        Interpreter_ShutingYard(ev,&dostatement);
-    }else{
-        Interpreter_ShutingYard(ev,&initstatement);
-    }
-
-    Boolean b = 0;
-    FunctionRT condition = Interpreter_CheckCondition(ev,&cpy,&b);
-    TokenMap_Free(&initstatement);
-    TokenMap_Free(&dostatement);
-    TokenMap_Free(&conditionstatement);
-    TokenMap_Free(&statement);
-    TokenMap_Free(&cpy);
-
-    if(condition==FUNCTION_CALLED){
-        return FUNCTIONRT_NONE;
-    }
-
-    if(cp && cp->type==TOKEN_LUALIKE_FOR && cp->pos==ev->iter){
-        if(condition==0){
-            Scope_Pop(&ev->sc);
-            CallStack_Pop(&ev->cs);
-            
-            Interpreter_IterateToTokens(ev,(TT_Type[]){
-                TOKEN_LUALIKE_END,
-                TOKEN_END
-            });
-            ev->iter++;
-        }
-    }else{
-        if(condition==0){
-            Interpreter_IterateToTokens(ev,(TT_Type[]){
-                TOKEN_LUALIKE_END,
-                TOKEN_END
-            });
-            ev->iter++;
-        }else{
-            CallPosition cp =  CallPosition_New(TOKEN_LUALIKE_FOR,ev->iter);
-            Vector_Push(&ev->cs,&cp);
-            ev->sc.range++;
-        }
-    }
-    return True;
+    return FUNCTIONRT_NONE;
 }
 
 Boolean ShutingYard_FunctionCall_Acs(Enviroment* ev,TokenMap* tm,int i,int args,Token* tok){
@@ -664,30 +355,30 @@ Boolean ShutingYard_FunctionCall_Acs(Enviroment* ev,TokenMap* tm,int i,int args,
             xf = ExternPackageMap_FindFunc(&ev->epm,func->str);
             if(ff){
                 if(ff->access || CStr_Cmp(accssed->str,LUALIKE_SELF)){
-                    FunctionRT ret = COMPILER_FunctionCall(ev,func);
+                    FunctionRT ret = Compiler_FunctionCall(ev,func);
                     if(ret != FUNCTIONRT_ARG0){
-                        CStr retstr = COMPILER_Variablename_This(ev,COMPILER_RETURN,7);
+                        CStr retstr = Compiler_Variablename_This(ev,COMPILER_RETURN,7);
                         *tok = Token_Move(TOKEN_STRING,retstr);
                     }
                     return ret;
                 }else{
-                    COMPILER_ErrorHandler(ev,"Function: %s isn't pub or non self %s tries to access!",func->str,accssed->str);
+                    Compiler_ErrorHandler(ev,"Function: %s isn't pub or non self %s tries to access!",func->str,accssed->str);
                     return FUNCTIONRT_NONE;
                 }
             }else if(xf){
                 if(xf->access || CStr_Cmp(accssed->str,LUALIKE_SELF)){
-                    FunctionRT ret = COMPILER_FunctionCall(ev,func);
+                    FunctionRT ret = Compiler_FunctionCall(ev,func);
                     if(ret != FUNCTIONRT_ARG0){
-                        CStr retstr = COMPILER_Variablename_This(ev,COMPILER_RETURN,7);
+                        CStr retstr = Compiler_Variablename_This(ev,COMPILER_RETURN,7);
                         *tok = Token_Move(TOKEN_STRING,retstr);
                     }
                     return ret;
                 }else{
-                    COMPILER_ErrorHandler(ev,"Function: %s isn't pub or non self %s tries to access!",func->str,accssed->str);
+                    Compiler_ErrorHandler(ev,"Function: %s isn't pub or non self %s tries to access!",func->str,accssed->str);
                     return FUNCTIONRT_NONE;
                 }
             }else{
-                COMPILER_ErrorHandler(ev,"Function: dynamic function %s doesn't exist and %s tries to access!",func->str,accssed->str);
+                Compiler_ErrorHandler(ev,"Function: dynamic function %s doesn't exist and %s tries to access!",func->str,accssed->str);
                 return FUNCTIONRT_NONE;
             }
         }
@@ -698,15 +389,7 @@ Boolean ShutingYard_FunctionCall_Acs(Enviroment* ev,TokenMap* tm,int i,int args,
 
 void LuaLikeIR_Function_Handler(LuaLikeIR* ll,Token* t,Function* f){
     if(t->tt==TOKEN_FUNCTION){
-        if(f->pos>=0){
-            CStr functionname = LuaLikeIR_FunctionName(ll,f->name);
-            LuaLikeIR_Indentation_Appendf(ll,&ll->text,"call %s",functionname);
-            CStr_Free(&functionname);
-        }else{
-            CStr location = LuaLikeIR_Location(ll,f->name);
-            LuaLikeIR_Indentation_Appendf(ll,&ll->text,"call %s",location);
-            CStr_Free(&location);
-        }
+        LuaLikeIR_Indentation_Appendf(ll,&ll->text,"call %s",f->name);
     }else{
         Compiler_ErrorHandler(&ll->ev,"Function: %s doesn't exist!",t->str);
     }
@@ -991,14 +674,10 @@ LuaLikeIR LuaLikeIR_New(char* dllpath,char* src,char* output,char bits) {
     ll.logicpath = Vector_New(sizeof(LogicBlock));
 
     Vector_Push(&ll.ev.epm,(ExternPackage[]){ ExternPackage_Make(ll.dllpath,"int","Ex_Packer",  (CStr[]){ "int",NULL },     &ll.ev.sc) });
-    Vector_Push(&ll.ev.epm,(ExternPackage[]){ ExternPackage_Make(ll.dllpath,"small","Ex_Packer",(CStr[]){ "small",NULL },   &ll.ev.sc) });
     Vector_Push(&ll.ev.epm,(ExternPackage[]){ ExternPackage_Make(ll.dllpath,"bool","Ex_Packer", (CStr[]){ "bool",NULL },    &ll.ev.sc) });
     Vector_Push(&ll.ev.epm,(ExternPackage[]){ ExternPackage_Make(ll.dllpath,"float","Ex_Packer",(CStr[]){ "float",NULL },   &ll.ev.sc) });
     Vector_Push(&ll.ev.epm,(ExternPackage[]){ ExternPackage_Make(ll.dllpath,"str","Ex_Packer",  (CStr[]){ "str",NULL },     &ll.ev.sc) });
-    Vector_Push(&ll.ev.epm,(ExternPackage[]){ ExternPackage_Make(ll.dllpath,"obj","Ex_Packer",  (CStr[]){ "obj",NULL },     &ll.ev.sc) });
-    Vector_Push(&ll.ev.epm,(ExternPackage[]){ ExternPackage_Make(ll.dllpath,"list","Ex_Packer", (CStr[]){ "list",NULL },    &ll.ev.sc) });
-    Vector_Push(&ll.ev.epm,(ExternPackage[]){ ExternPackage_Make(ll.dllpath,"func","Ex_Packer", (CStr[]){ "func",NULL },    &ll.ev.sc) });
-
+    
     CVector_Push(&ll.filesstack,(CStr[]){ CStr_Cpy(src) });
     CVector_Push(&ll.filesinc,(CStr[]){ CStr_Cpy(src) });
     Compiler_Script(&ll.ev,src);
