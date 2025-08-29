@@ -1,30 +1,4 @@
-{ Block - Comment }
-; IR Code like ASM for Optimisations
-; Can be translated to other Languages
+;|
+;| LuaLikeIR by codeleaded
+;|
 
-from io import input
-from io import print
-;include "./code/Script.iralx"
-
-fn add int r,int a,int b
-    add     int         r,a,b
-    ret
-
-fn main int r
-    make    int         a
-    ass     int         a,1
-
-    make    int         b
-    ass     int         b,2
-
-    call    add         r,a,b
-
-    je      int         IF0,r,3
-
-    call    io::print   "Hello World\n"
-
-    tar     IF0
-
-    kill    b
-    kill    a
-    ret

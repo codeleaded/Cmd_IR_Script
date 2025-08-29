@@ -13,9 +13,9 @@
 #include "LuaLikeIRDefines.h"
 #include "LuaLikeIRASM.h"
 
-FunctionRT ShutingYard_compress(Enviroment* ev,TokenMap* tm);
+FunctionRT ShutingYard_compress(LuaLikeIR* ll,TokenMap* tm);
 
-FunctionRT ShutingYard_compress_staticmethods(Enviroment* ev,TokenMap* tm){
+FunctionRT ShutingYard_compress_staticmethods(LuaLikeIR* ll,TokenMap* tm){
     for(int i = 0;i<tm->size;i++){
         Token* class = (Token*)Vector_Get(tm,i);
         
@@ -45,7 +45,7 @@ FunctionRT ShutingYard_compress_staticmethods(Enviroment* ev,TokenMap* tm){
     }
     return FUNCTIONRT_NONE;
 }
-FunctionRT ShutingYard_compress_cast(Enviroment* ev,TokenMap* tm){
+FunctionRT ShutingYard_compress_cast(LuaLikeIR* ll,TokenMap* tm){
     for(int i = 0;i<tm->size;i++){
         Token* pretl = (Token*)Vector_Get(tm,i);
         Token* type = (Token*)Vector_Get(tm,i+1);
@@ -59,7 +59,7 @@ FunctionRT ShutingYard_compress_cast(Enviroment* ev,TokenMap* tm){
     }
     return False;
 }
-FunctionRT ShutingYard_compress_objects(Enviroment* ev,TokenMap* tm){
+FunctionRT ShutingYard_compress_objects(LuaLikeIR* ll,TokenMap* tm){
     for(int i = 0;i+1<tm->size;i++){
         Token* prentl = (Token*)Vector_Get(tm,i);
 
@@ -80,7 +80,7 @@ FunctionRT ShutingYard_compress_objects(Enviroment* ev,TokenMap* tm){
                     if(t->tt==TOKEN_COMMA || Parentheses<0){
                         if(Parentheses<=0){
                             TokenMap newtm = TokenMap_SubMove(tm,Last,j);
-                            ShutingYard_compress(ev,&newtm);
+                            ShutingYard_compress(ll,&newtm);
                             Vector_Push(prentl->args,&newtm);
                             Last = j + 1;
                         }
@@ -96,7 +96,7 @@ FunctionRT ShutingYard_compress_objects(Enviroment* ev,TokenMap* tm){
     }
     return FUNCTIONRT_NONE;
 }
-FunctionRT ShutingYard_compress_subscript(Enviroment* ev,TokenMap* tm){
+FunctionRT ShutingYard_compress_subscript(LuaLikeIR* ll,TokenMap* tm){
     for(int i = 0;i<tm->size;i++){
         Token* subs = (Token*)Vector_Get(tm,i);
 
@@ -110,7 +110,7 @@ FunctionRT ShutingYard_compress_subscript(Enviroment* ev,TokenMap* tm){
     }
     return FUNCTIONRT_NONE;
 }
-FunctionRT ShutingYard_compress_functioncalls(Enviroment* ev,TokenMap* tm){
+FunctionRT ShutingYard_compress_functioncalls(LuaLikeIR* ll,TokenMap* tm){
     for(int i = 0;i+1<tm->size;i++){
         Token* func = (Token*)Vector_Get(tm,i);
         Token* prentl = (Token*)Vector_Get(tm,i+1);
@@ -132,7 +132,7 @@ FunctionRT ShutingYard_compress_functioncalls(Enviroment* ev,TokenMap* tm){
                     if(t->tt==TOKEN_COMMA || Parentheses<0){
                         if(Parentheses<=0){
                             TokenMap newtm = TokenMap_Sub(tm,Last,j);
-                            ShutingYard_compress(ev,&newtm);
+                            ShutingYard_compress(ll,&newtm);
                             Vector_Push(func->args,&newtm);
                             Last = j + 1;
                         }
@@ -148,12 +148,12 @@ FunctionRT ShutingYard_compress_functioncalls(Enviroment* ev,TokenMap* tm){
     }
     return FUNCTIONRT_NONE;
 }
-FunctionRT ShutingYard_compress_functiontoFunc(Enviroment* ev,TokenMap* tm){
+FunctionRT ShutingYard_compress_functiontoFunc(LuaLikeIR* ll,TokenMap* tm){
     for(int i = 0;i<tm->size;i++){
         Token* func = (Token*)Vector_Get(tm,i);
 
         if(func->tt==TOKEN_STRING){
-            TT_Iter it = FunctionMap_Find(&ev->fs,func->str);
+            TT_Iter it = FunctionMap_Find(&ll->ev.fs,func->str);
             if(it>=0){
                 func->tt = TOKEN_FUNCTIONPOINTER;
             }
@@ -161,17 +161,17 @@ FunctionRT ShutingYard_compress_functiontoFunc(Enviroment* ev,TokenMap* tm){
     }
     return FUNCTIONRT_NONE;
 }
-FunctionRT ShutingYard_compress(Enviroment* ev,TokenMap* tm){
-    //ShutingYard_compress_objects(ev,tm);
+FunctionRT ShutingYard_compress(LuaLikeIR* ll,TokenMap* tm){
+    //ShutingYard_compress_objects(ll,tm);
     
-    ShutingYard_compress_staticmethods(ev,tm);
-    ShutingYard_compress_cast(ev,tm);
-    ShutingYard_compress_subscript(ev,tm);
-    ShutingYard_compress_functioncalls(ev,tm);
-    ShutingYard_compress_functiontoFunc(ev,tm);
+    ShutingYard_compress_staticmethods(ll,tm);
+    ShutingYard_compress_cast(ll,tm);
+    ShutingYard_compress_subscript(ll,tm);
+    ShutingYard_compress_functioncalls(ll,tm);
+    ShutingYard_compress_functiontoFunc(ll,tm);
     return FUNCTIONRT_NONE;
 }
-FunctionRT ShutingYard_function(Enviroment* ev,TokenMap* tm){
+FunctionRT ShutingYard_function(LuaLikeIR* ll,TokenMap* tm){
     CStr name = ((Token*)Vector_Get(tm,1))->str;
     Vector params = Vector_New(sizeof(Member));
 
@@ -227,8 +227,8 @@ FunctionRT ShutingYard_function(Enviroment* ev,TokenMap* tm){
     Vector_Push(&params,(Member[]){ MEMBER_END });
 
     String builder = String_New();
-    for(int i = 0;i<ev->cs.size;i++){
-        CallPosition* cp = (CallPosition*)Vector_Get(&ev->cs,i);
+    for(int i = 0;i<ll->ev.cs.size;i++){
+        CallPosition* cp = (CallPosition*)Vector_Get(&ll->ev.cs,i);
         
         if(cp->type==TOKEN_LUALIKE_CLASS){
             String_Append(&builder,cp->fname);
@@ -240,11 +240,11 @@ FunctionRT ShutingYard_function(Enviroment* ev,TokenMap* tm){
     CStr_Set(&name,realname);
     String_Free(&builder);
 
-    CallPosition cp = CallPosition_New(TOKEN_FUNCTION,ev->iter);
-    Vector_Push(&ev->cs,&cp);
+    CallPosition cp = CallPosition_New(TOKEN_FUNCTION,ll->ev.iter);
+    Vector_Push(&ll->ev.cs,&cp);
 
-    Function f = Function_Make(ev->iter,realname,ftype,(Member*)params.Memory);
-    Vector_Push(&ev->fs,&f);
+    Function f = Function_Make(ll->ev.iter,realname,ftype,(Member*)params.Memory);
+    Vector_Push(&ll->ev.fs,&f);
 
     TokenMap_Free(&rettype);
     Vector_Free(&params);
@@ -252,7 +252,7 @@ FunctionRT ShutingYard_function(Enviroment* ev,TokenMap* tm){
     return FUNCTIONRT_NONE;
 }
 
-FunctionRT ShutingYard_Import(Enviroment* ev,TokenMap* tm){
+FunctionRT ShutingYard_Import(LuaLikeIR* ll,TokenMap* tm){
     // TODO with as -> Objects & access using . & :: (Methods and Members)
     return FUNCTIONRT_NONE;
 }
@@ -299,34 +299,48 @@ FunctionRT ShutingYard_Class(LuaLikeIR* ll,TokenMap* tm){
     return FUNCTIONRT_NONE;
 }
 
-FunctionRT ShutingYard_return(Enviroment* ev,TokenMap* tm){
+FunctionRT ShutingYard_type(LuaLikeIR* ll,TokenMap* tm){
+    if(tm->size >= 2){
+        Token* type = (Token*)Vector_Get(tm,0);
+        Token* name = (Token*)Vector_Get(tm,1);
+        Scope_BuildVariable(&ll->ev.sc,name->str,type->str);
+
+        TokenMap cpy = TokenMap_Cpy(tm);
+        TokenMap_RemoveI(&cpy,0);
+        Boolean ret = Compiler_ShutingYard(&ll->ev,&cpy);
+        TokenMap_Free(&cpy);
+        return ret;
+    }
     return FUNCTIONRT_NONE;
 }
-FunctionRT ShutingYard_end(Enviroment* ev,TokenMap* tm){
+FunctionRT ShutingYard_return(LuaLikeIR* ll,TokenMap* tm){
     return FUNCTIONRT_NONE;
 }
-FunctionRT ShutingYard_if(Enviroment* ev,TokenMap* tm){
+FunctionRT ShutingYard_end(LuaLikeIR* ll,TokenMap* tm){
     return FUNCTIONRT_NONE;
 }
-FunctionRT ShutingYard_elif(Enviroment* ev,TokenMap* tm){
+FunctionRT ShutingYard_if(LuaLikeIR* ll,TokenMap* tm){
     return FUNCTIONRT_NONE;
 }
-FunctionRT ShutingYard_else(Enviroment* ev,TokenMap* tm){
+FunctionRT ShutingYard_elif(LuaLikeIR* ll,TokenMap* tm){
     return FUNCTIONRT_NONE;
 }
-FunctionRT ShutingYard_while(Enviroment* ev,TokenMap* tm){
+FunctionRT ShutingYard_else(LuaLikeIR* ll,TokenMap* tm){
     return FUNCTIONRT_NONE;
 }
-FunctionRT ShutingYard_for(Enviroment* ev,TokenMap* tm){
+FunctionRT ShutingYard_while(LuaLikeIR* ll,TokenMap* tm){
+    return FUNCTIONRT_NONE;
+}
+FunctionRT ShutingYard_for(LuaLikeIR* ll,TokenMap* tm){
     return FUNCTIONRT_NONE;
 }
 
-Boolean ShutingYard_FunctionCall_Acs(Enviroment* ev,TokenMap* tm,int i,int args,Token* tok){
+Boolean ShutingYard_FunctionCall_Acs(LuaLikeIR* ll,TokenMap* tm,int i,int args,Token* tok){
     Token* accssed = (Token*)Vector_Get(tm,i - args);
     Token* func = (Token*)Vector_Get(tm,i - args + 1);
 
     if(func->tt==TOKEN_FUNCTION){
-        Variable* v = Scope_FindVariable(&ev->sc,accssed->str);
+        Variable* v = Scope_FindVariable(&ll->ev.sc,accssed->str);
 
         if(v){
             CStr oldname = CStr_Cpy(func->str);
@@ -336,8 +350,8 @@ Boolean ShutingYard_FunctionCall_Acs(Enviroment* ev,TokenMap* tm,int i,int args,
             Function* ff = NULL;
             ExternFunction* xf = NULL;
             
-            ff = FunctionMap_FindF(&ev->fs,func->str);
-            xf = ExternPackageMap_FindFunc(&ev->epm,func->str);
+            ff = FunctionMap_FindF(&ll->ev.fs,func->str);
+            xf = ExternPackageMap_FindFunc(&ll->ev.epm,func->str);
             if(ff || xf){
                 TokenMap acs = TokenMap_Make((Token[]){
                     Token_Cpy(accssed),
@@ -351,34 +365,34 @@ Boolean ShutingYard_FunctionCall_Acs(Enviroment* ev,TokenMap* tm,int i,int args,
             CStr_Free(&newname);
             CStr_Free(&oldname);
 
-            ff = FunctionMap_FindF(&ev->fs,func->str);
-            xf = ExternPackageMap_FindFunc(&ev->epm,func->str);
+            ff = FunctionMap_FindF(&ll->ev.fs,func->str);
+            xf = ExternPackageMap_FindFunc(&ll->ev.epm,func->str);
             if(ff){
                 if(ff->access || CStr_Cmp(accssed->str,LUALIKE_SELF)){
-                    FunctionRT ret = Compiler_FunctionCall(ev,func);
+                    FunctionRT ret = Compiler_FunctionCall(&ll->ev,func);
                     if(ret != FUNCTIONRT_ARG0){
-                        CStr retstr = Compiler_Variablename_This(ev,COMPILER_RETURN,7);
+                        CStr retstr = Compiler_Variablename_This(&ll->ev,COMPILER_RETURN,7);
                         *tok = Token_Move(TOKEN_STRING,retstr);
                     }
                     return ret;
                 }else{
-                    Compiler_ErrorHandler(ev,"Function: %s isn't pub or non self %s tries to access!",func->str,accssed->str);
+                    Compiler_ErrorHandler(&ll->ev,"Function: %s isn't pub or non self %s tries to access!",func->str,accssed->str);
                     return FUNCTIONRT_NONE;
                 }
             }else if(xf){
                 if(xf->access || CStr_Cmp(accssed->str,LUALIKE_SELF)){
-                    FunctionRT ret = Compiler_FunctionCall(ev,func);
+                    FunctionRT ret = Compiler_FunctionCall(&ll->ev,func);
                     if(ret != FUNCTIONRT_ARG0){
-                        CStr retstr = Compiler_Variablename_This(ev,COMPILER_RETURN,7);
+                        CStr retstr = Compiler_Variablename_This(&ll->ev,COMPILER_RETURN,7);
                         *tok = Token_Move(TOKEN_STRING,retstr);
                     }
                     return ret;
                 }else{
-                    Compiler_ErrorHandler(ev,"Function: %s isn't pub or non self %s tries to access!",func->str,accssed->str);
+                    Compiler_ErrorHandler(&ll->ev,"Function: %s isn't pub or non self %s tries to access!",func->str,accssed->str);
                     return FUNCTIONRT_NONE;
                 }
             }else{
-                Compiler_ErrorHandler(ev,"Function: dynamic function %s doesn't exist and %s tries to access!",func->str,accssed->str);
+                Compiler_ErrorHandler(&ll->ev,"Function: dynamic function %s doesn't exist and %s tries to access!",func->str,accssed->str);
                 return FUNCTIONRT_NONE;
             }
         }
@@ -407,6 +421,7 @@ LuaLikeIR LuaLikeIR_New(char* dllpath,char* src,char* output,char bits) {
             KeywordRP_New("else",TOKEN_LUALIKE_ELSE),
             KeywordRP_New("while",TOKEN_LUALIKE_WHILE),
             KeywordRP_New("for",TOKEN_LUALIKE_FOR),
+            KeywordRP_New("local",TOKEN_LUALIKE_LOCAL),
     
             KeywordRP_New("import",TOKEN_LUALIKE_IMPORT),
             KeywordRP_New("from",TOKEN_LUALIKE_FROM),
@@ -632,12 +647,14 @@ LuaLikeIR LuaLikeIR_New(char* dllpath,char* src,char* output,char bits) {
             KeywordExecuter_New(TOKEN_LUALIKE_ELSE,     (void*)ShutingYard_compress),
             KeywordExecuter_New(TOKEN_LUALIKE_WHILE,    (void*)ShutingYard_compress),
             KeywordExecuter_New(TOKEN_LUALIKE_FOR,      (void*)ShutingYard_compress),
-            KeywordExecuter_New(TOKEN_LUALIKE_FUNCTION, (void*)ShutingYard_function),
-    
+            KEYWORDEXECUTER_END
+        }),
+        KeywordExecuterMap_Make((KeywordExecuter[]){
             KeywordExecuter_New(TOKEN_LUALIKE_IMPORT,   (void*)ShutingYard_Import),
             KeywordExecuter_New(TOKEN_LUALIKE_FROM,     (void*)ShutingYard_From),
             KeywordExecuter_New(TOKEN_LUALIKE_INCLUDE,  (void*)ShutingYard_Include),
             KeywordExecuter_New(TOKEN_LUALIKE_CLASS,    (void*)ShutingYard_Class),
+            KeywordExecuter_New(TOKEN_LUALIKE_FUNCTION, (void*)ShutingYard_function),
             KeywordExecuter_New(TOKEN_LUALIKE_IF,       (void*)ShutingYard_if),
             KeywordExecuter_New(TOKEN_LUALIKE_ELIF,     (void*)ShutingYard_elif),
             KeywordExecuter_New(TOKEN_LUALIKE_ELSE,     (void*)ShutingYard_else),
@@ -645,9 +662,7 @@ LuaLikeIR LuaLikeIR_New(char* dllpath,char* src,char* output,char bits) {
             KeywordExecuter_New(TOKEN_LUALIKE_FOR,      (void*)ShutingYard_for),
             KeywordExecuter_New(TOKEN_LUALIKE_RETURN,   (void*)ShutingYard_return),
             KeywordExecuter_New(TOKEN_LUALIKE_END,      (void*)ShutingYard_end),
-            KEYWORDEXECUTER_END
-        }),
-        KeywordExecuterMap_Make((KeywordExecuter[]){
+            KeywordExecuter_New(TOKEN_TYPE,             (void*)ShutingYard_type),
             KEYWORDEXECUTER_END
         }),
         DTT_TypeMap_Make((DTT_Type[]){
