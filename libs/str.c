@@ -1,112 +1,106 @@
 #include "/home/codeleaded/System/Static/Library/AlxCallStack.h"
 #include "/home/codeleaded/System/Static/Library/AlxExternFunctions.h"
-#include "/home/codeleaded/System/Static/Library/IRRuntime.h"
+#include "/home/codeleaded/System/Static/Library/LuaLikeDefines.h"
+
+CStr Implementation_StrOf(Scope* s,Token* a){
+    CStr n = NULL;
+    
+    if(a->tt==TOKEN_STRING){
+        Variable* a_var = Scope_FindVariable(s,a->str);
+        if(a_var){
+            n = *(CStr*)Variable_Data(a_var);
+        }else{
+            printf("[Int_CStr]: 1. Arg: Variable %s doesn't exist!\n",a->str);
+        }
+    }else if(a->tt==TOKEN_CONSTSTRING_DOUBLE){
+        n = a->str;
+    }else{
+        printf("[Int_CStr]: 1. Arg: %s is not a int type!\n",a->str);
+    }
+    return n;
+}
 
 void Str_Destroyer(Variable* v){
+    //printf("Str: Destroyer!\n");
     CStr* str = (CStr*)Variable_Data(v);
     CStr_Free(str);
 }
 void Str_Cpyer(Variable* src,Variable* dst){
+    //printf("Str: Cpyer!\n");
     CStr* src_str = (CStr*)Variable_Data(src);
     CStr* dst_str = (CStr*)Variable_Data(dst);
     *dst_str = CStr_Cpy(*src_str);
 }
 
-Token Str_Str_Handler_Ass(IR* ir,Token* op,Vector* args){
+Token Str_Str_Handler_Ass(Scope* s,Token* op,Vector* args){
     Token* a = (Token*)Vector_Get(args,0);
     Token* b = (Token*)Vector_Get(args,1);
 
-    IR_InfoHandler(ir,"ass str %s %s",a->str,b->str);
+    //printf("ASS: %s = %s\n",a->str,b->str);
 
-    CStr n2 = IR_Impl_Str(ir,b);
+    CStr n2 = Implementation_StrOf(s,b);
+    
     if(a->tt==TOKEN_STRING){
-        Variable* a_var = VariableMap_Find(&ir->vars,a->str);
+        Variable* a_var = Scope_FindVariable(s,a->str);
         if(a_var){
-            Variable_PrepairFor(a_var,sizeof(CStr),"str",NULL,NULL);
+            Variable_PrepairFor(a_var,sizeof(CStr),"str",Str_Destroyer,Str_Cpyer);
             Variable_SetTo(a_var,(CStr[]){ CStr_Cpy(n2) });
         }else{
-            IR_ErrorHandler(ir,"Ass: variable %s doesn't exist!",a->str);
+            Scope_BuildInitVariableRange(s,a->str,"str",s->range-1,(CStr[]){ CStr_Cpy(n2) });
         }
     }else{
-        IR_ErrorHandler(ir,"Ass: arg1 should be a variable, but is %s!",a->str);
+        printf("[Str_Ass]: 1. Arg: %s is not a variable type!\n",a->str);
     }
 
-    CStr res = CStr_Cpy(n2);
-    return Token_Move(TOKEN_CONSTSTRING_DOUBLE,res);
+    return Token_By(TOKEN_CONSTSTRING_DOUBLE,n2);
 }
-
-Token Str_Str_Handler_Add2(IR* ir,Token* op,Vector* args){
+Token Str_Str_Handler_Add(Scope* s,Token* op,Vector* args){
     Token* a = (Token*)Vector_Get(args,0);
     Token* b = (Token*)Vector_Get(args,1);
 
-    IR_InfoHandler(ir,"add str %s %s",a->str,b->str);
+    //printf("ADD: %s + %s\n",a->str,b->str);
 
-    CStr n1 = IR_Impl_Str(ir,a);
-    CStr n2 = IR_Impl_Str(ir,b);
-    CStr res = CStr_Concat(n1,n2);
-    if(a->tt==TOKEN_STRING){
-        Variable* a_var = VariableMap_Find(&ir->vars,a->str);
-        if(a_var){
-            Variable_PrepairFor(a_var,sizeof(CStr),"str",NULL,NULL);
-            Variable_SetTo(a_var,(CStr[]){ CStr_Cpy(res) });
-        }else{
-            IR_ErrorHandler(ir,"Add: variable %s doesn't exist!",a->str);
-        }
-    }else{
-        IR_ErrorHandler(ir,"Add: arg1 should be a variable, but is %s!",a->str);
-    }
+    CStr n1 = Implementation_StrOf(s,a);
+    CStr n2 = Implementation_StrOf(s,b);
+    int s1 = CStr_Size(n1);
+    int s2 = CStr_Size(n2);
+    
+    CStr res = malloc(s1+s2+1);
+    memcpy(res,n1,s1);
+    memcpy(res+s1,n2,s2+1);
 
     return Token_Move(TOKEN_CONSTSTRING_DOUBLE,res);
 }
-Token Str_Str_Handler_Add3(IR* ir,Token* op,Vector* args){
-    Token* a = (Token*)Vector_Get(args,0);
-    Token* b = (Token*)Vector_Get(args,1);
-    Token* c = (Token*)Vector_Get(args,2);
-
-    IR_InfoHandler(ir,"add str %s %s %s",a->str,b->str,c->str);
-
-    CStr n2 = IR_Impl_Str(ir,b);
-    CStr n3 = IR_Impl_Str(ir,c);
-    CStr res = CStr_Concat(n2,n3);
-    if(a->tt==TOKEN_STRING){
-        Variable* a_var = VariableMap_Find(&ir->vars,a->str);
-        if(a_var){
-            Variable_PrepairFor(a_var,sizeof(CStr),"str",NULL,NULL);
-            Variable_SetTo(a_var,(CStr[]){ CStr_Cpy(res) });
-        }else{
-            IR_ErrorHandler(ir,"Add: variable %s doesn't exist!",a->str);
-        }
-    }else{
-        IR_ErrorHandler(ir,"Add: arg1 should be a variable, but is %s!",a->str);
-    }
-
-    return Token_Move(TOKEN_CONSTSTRING_DOUBLE,res);
-}
-Token Str_Str_Handler_Equ(IR* ir,Token* op,Vector* args){
+Token Str_Str_Handler_Equ(Scope* s,Token* op,Vector* args){
     Token* a = (Token*)Vector_Get(args,0);
     Token* b = (Token*)Vector_Get(args,1);
 
-    CStr n1 = IR_Impl_Str(ir,a);
-    CStr n2 = IR_Impl_Str(ir,b);
+    //printf("EQU: %s == %s\n",a->str,b->str);
+
+    CStr n1 = Implementation_StrOf(s,a);
+    CStr n2 = Implementation_StrOf(s,b);
     Boolean res = CStr_Cmp(n1,n2);
 
     char* resstr = Boolean_Get(res);
     return Token_Move(TOKEN_BOOL,resstr);
 }
-
-Token Str_Handler_Cast(IR* ir,Token* op,Vector* args){
+Token Str_Handler_Cast(Scope* s,Token* op,Vector* args){
     Token* a = (Token*)Vector_Get(args,0);
 
-    CStr n1 = IR_Impl_Str(ir,a);
+    //printf("CAST: %s\n",a->str);
+
+    CStr n1 = Implementation_StrOf(s,a);
     
     CStr res = n1;
     char* resstr = CStr_Cpy(res);
     return Token_Move(TOKEN_CONSTSTRING_DOUBLE,resstr);
 }
-Token Str_Handler_Destroy(IR* ir,Token* op,Vector* args){
+Token Str_Handler_Destroy(Scope* s,Token* op,Vector* args){
     Token* a = (Token*)Vector_Get(args,0);
 
-    Variable* a_var = VariableMap_Find(&ir->vars,a->str);
+    //printf("DESTROY: %s\n",a->str);
+
+    Variable* a_var = Scope_FindVariable(s,a->str);
     if(a_var){
         a_var->destroy(a_var);
     }
@@ -114,23 +108,19 @@ Token Str_Handler_Destroy(IR* ir,Token* op,Vector* args){
     return Token_Null();
 }
 
-void Ex_Packer(ExternFunctionMap* Extern_Functions,Vector* funcs,IR* ir){//Vector<CStr>
-    TypeMap_PushContained(&ir->types,funcs,
-        Type_New("str",sizeof(CStr),OperatorInterationMap_Make((OperatorInterater[]){
+void Ex_Packer(ExternFunctionMap* Extern_Functions,Vector* funcs,Scope* s){//Vector<CStr>
+    TypeMap_PushContained(&s->types,funcs,
+        Type_New("str",8,OperatorInterationMap_Make((OperatorInterater[]){
             OperatorInterater_Make((CStr[]){ NULL },OperatorDefineMap_Make((OperatorDefiner[]){
-                OperatorDefiner_New(TOKEN_CAST,     (Token(*)(void*,Token*,Vector*))Str_Handler_Cast),
-                OperatorDefiner_New(TOKEN_INIT,     NULL),
-                OperatorDefiner_New(TOKEN_DESTROY,  NULL),
+                OperatorDefiner_New(TOKEN_CAST,(Token(*)(void*,Token*,Vector*))Str_Handler_Cast),
+                OperatorDefiner_New(TOKEN_INIT,NULL),
+                OperatorDefiner_New(TOKEN_DESTROY,NULL),
                 OPERATORDEFINER_END
             })),
             OperatorInterater_Make((CStr[]){ "str",NULL },OperatorDefineMap_Make((OperatorDefiner[]){
-                OperatorDefiner_New(TOKEN_IR_ASS,   (Token(*)(void*,Token*,Vector*))Str_Str_Handler_Ass),
-                OperatorDefiner_New(TOKEN_IR_ADD,   (Token(*)(void*,Token*,Vector*))Str_Str_Handler_Add2),
-                OperatorDefiner_New(TOKEN_IR_EQU,   (Token(*)(void*,Token*,Vector*))Str_Str_Handler_Equ),
-                OPERATORDEFINER_END
-            })),
-            OperatorInterater_Make((CStr[]){ "str","str",NULL },OperatorDefineMap_Make((OperatorDefiner[]){
-                OperatorDefiner_New(TOKEN_IR_ADD,   (Token(*)(void*,Token*,Vector*))Str_Str_Handler_Add3),
+                OperatorDefiner_New(TOKEN_LUALIKE_ASS,(Token(*)(void*,Token*,Vector*))Str_Str_Handler_Ass),
+                OperatorDefiner_New(TOKEN_LUALIKE_ADD,(Token(*)(void*,Token*,Vector*))Str_Str_Handler_Add),
+                OperatorDefiner_New(TOKEN_LUALIKE_EQU,(Token(*)(void*,Token*,Vector*))Str_Str_Handler_Equ),
                 OPERATORDEFINER_END
             })),
             OPERATORINTERATER_END

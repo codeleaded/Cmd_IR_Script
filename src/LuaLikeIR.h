@@ -604,12 +604,9 @@ LuaLikeIR LuaLikeIR_New(char* dllpath,char* src,char* output,char bits) {
                 StdConstType_New(TOKEN_FLOAT,"float"),
                 StdConstType_New(TOKEN_BOOL,"bool"),
                 StdConstType_New(TOKEN_CONSTSTRING_DOUBLE,"str"),
-                StdConstType_New(TOKEN_FUNCTIONPOINTER,"func"),
                 STDCONSTTYPE_END
             },
             VariableMap_Make((Variable[]){
-                //Variable_Make("z","int",(Number[]){ 69 },8,0,NULL,NULL),
-                //Variable_Make("b","int",(Number[]){ 31 },8,0),
                 VARIABLE_END
             }),
             TypeMap_Make((Type[]){
