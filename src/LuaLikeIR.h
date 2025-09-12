@@ -198,7 +198,8 @@ FunctionRT ShutingYard_function(LuaLikeIR* ll,TokenMap* tm){
             FunctionRT bref = ref>=0;
             FunctionRT bconstant = constant>=0;
             
-            if(decl>=0 && type<first.size) stype = ((Token*)Vector_Get(&first,type))->str;
+            if(decl>=0 && type<first.size)
+                stype = ((Token*)Vector_Get(&first,type))->str;
             
             Vector_Push(&params,(Member[]){ Member_Make(bconstant,bref,stype,sname) });
         }
@@ -400,7 +401,6 @@ Boolean ShutingYard_FunctionCall_Acs(LuaLikeIR* ll,TokenMap* tm,int i,int args,T
         
     return FUNCTIONRT_NONE;
 }
-
 void LuaLikeIR_Function_Handler(LuaLikeIR* ll,Token* t,Function* f){
     if(t->tt==TOKEN_FUNCTION){
         LuaLikeIR_Indentation_Appendf(ll,&ll->text,"call %s",f->name);
