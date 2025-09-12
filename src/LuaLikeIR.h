@@ -59,6 +59,20 @@ FunctionRT ShutingYard_compress_cast(LuaLikeIR* ll,TokenMap* tm){
     }
     return False;
 }
+FunctionRT ShutingYard_compress_decl(LuaLikeIR* ll,TokenMap* tm){
+    for(int i = 0;i + 2<tm->size;i++){
+        Token* name = (Token*)Vector_Get(tm,i);
+        Token* ddot = (Token*)Vector_Get(tm,i+1);
+        Token* type = (Token*)Vector_Get(tm,i+2);
+
+        if(name->tt==TOKEN_STRING && ddot->tt==TOKEN_LUALIKE_DDOT && type->tt==TOKEN_TYPE){
+            Token cpy = Token_Cpy(type);
+            TokenMap_Remove(tm,i+1,i+3);
+            Vector_Add(tm,&cpy,i);
+        }
+    }
+    return False;
+}
 FunctionRT ShutingYard_compress_objects(LuaLikeIR* ll,TokenMap* tm){
     for(int i = 0;i+1<tm->size;i++){
         Token* prentl = (Token*)Vector_Get(tm,i);
@@ -164,6 +178,7 @@ FunctionRT ShutingYard_compress_functiontoFunc(LuaLikeIR* ll,TokenMap* tm){
 FunctionRT ShutingYard_compress(LuaLikeIR* ll,TokenMap* tm){
     //ShutingYard_compress_objects(ll,tm);
     
+    ShutingYard_compress_decl(ll,tm);
     ShutingYard_compress_staticmethods(ll,tm);
     ShutingYard_compress_cast(ll,tm);
     ShutingYard_compress_subscript(ll,tm);
@@ -222,7 +237,8 @@ FunctionRT ShutingYard_function(LuaLikeIR* ll,TokenMap* tm){
         //TT_Iter constant = TokenMap_Find(&rettype,TOKEN_LUALIKE_CONST);
         //bref = ref>=0;
         //bconstant = constant>=0;
-        if(decl>=0 && type<tm->size) ftype = ((Token*)Vector_Get(&rettype,type))->str;
+        if(decl>=0 && type<tm->size)
+            ftype = ((Token*)Vector_Get(&rettype,type))->str;
     }
 
     Vector_Push(&params,(Member[]){ MEMBER_END });
@@ -306,11 +322,31 @@ FunctionRT ShutingYard_type(LuaLikeIR* ll,TokenMap* tm){
         Token* name = (Token*)Vector_Get(tm,1);
         Scope_BuildVariable(&ll->ev.sc,name->str,type->str);
 
+        String* funcstr = LuaLikeIR_FunctionText(ll);
+        LuaLikeIR_Indentation_Appendf(ll,funcstr,"make\t%s\t%s",type->str,name->str);
+        
         TokenMap cpy = TokenMap_Cpy(tm);
         TokenMap_RemoveI(&cpy,0);
         Boolean ret = Compiler_ShutingYard(&ll->ev,&cpy);
         TokenMap_Free(&cpy);
         return ret;
+    }
+    return FUNCTIONRT_NONE;
+}
+FunctionRT ShutingYard_Function(LuaLikeIR* ll,TokenMap* tm){
+    if(tm->size >= 2){
+        //Token* function = (Token*)Vector_Get(tm,0);
+        Token* name = (Token*)Vector_Get(tm,1);
+        Function* func = FunctionMap_FindF(&ll->ev.fs,name->str);
+        
+        if(func){
+            for(int i = 0;i<func->params.size;i++){
+                Member* m = (Member*)Vector_Get(&func->params,i);
+                Scope_BuildVariable(&ll->ev.sc,m->name,m->type);
+            }
+        }else{
+            Compiler_ErrorHandler(&ll->ev,"function: %s doesn't exist!\n",name->str);
+        }
     }
     return FUNCTIONRT_NONE;
 }
@@ -641,6 +677,7 @@ LuaLikeIR LuaLikeIR_New(char* dllpath,char* src,char* output,char bits) {
         KeywordExecuterMap_Make((KeywordExecuter[]){
             KeywordExecuter_New(TOKEN_STRING,           (void*)ShutingYard_compress),
             KeywordExecuter_New(TOKEN_PARENTHESES_L,    (void*)ShutingYard_compress),
+            KeywordExecuter_New(TOKEN_LUALIKE_FUNCTION, (void*)ShutingYard_function),
             KeywordExecuter_New(TOKEN_LUALIKE_RETURN,   (void*)ShutingYard_compress),
             KeywordExecuter_New(TOKEN_LUALIKE_IF,       (void*)ShutingYard_compress),
             KeywordExecuter_New(TOKEN_LUALIKE_ELIF,     (void*)ShutingYard_compress),
@@ -654,7 +691,7 @@ LuaLikeIR LuaLikeIR_New(char* dllpath,char* src,char* output,char bits) {
             KeywordExecuter_New(TOKEN_LUALIKE_FROM,     (void*)ShutingYard_From),
             KeywordExecuter_New(TOKEN_LUALIKE_INCLUDE,  (void*)ShutingYard_Include),
             KeywordExecuter_New(TOKEN_LUALIKE_CLASS,    (void*)ShutingYard_Class),
-            KeywordExecuter_New(TOKEN_LUALIKE_FUNCTION, (void*)ShutingYard_function),
+            KeywordExecuter_New(TOKEN_LUALIKE_FUNCTION, (void*)ShutingYard_Function),
             KeywordExecuter_New(TOKEN_LUALIKE_IF,       (void*)ShutingYard_if),
             KeywordExecuter_New(TOKEN_LUALIKE_ELIF,     (void*)ShutingYard_elif),
             KeywordExecuter_New(TOKEN_LUALIKE_ELSE,     (void*)ShutingYard_else),
@@ -705,6 +742,31 @@ void LuaLikeIR_Build(LuaLikeIR* ll) {
     if(!ll->ev.error){
         String output = String_Format(";|\n;| LuaLikeIR by codeleaded\n;|\n\n");
         String_AppendString(&output,&ll->text);
+        String_Append(&output,"\n");
+
+        for(int i = 0;i<ll->ev.fs.size;i++){
+            Function* func = (Function*)Vector_Get(&ll->ev.fs,i);
+            if(func->text.size == 0) continue;
+
+            String_Appendf(&output,"fn %s ",func->name);
+            if(func->rettype){
+               String_Appendf(&output,"%s %s0",func->rettype,COMPILER_RETURN);
+
+                if(func->params.size>0)
+                    String_Append(&output,",");
+            }
+            for(int i = 0;i<func->params.size;i++){
+                Member* m = (Member*)Vector_Get(&func->params,i);
+                String_Appendf(&output,"%s %s",m->type,m->name);
+
+                if(i<func->params.size - 1)
+                    String_Append(&output,",");
+            }
+            String_Appendf(&output,"\n");
+            String_AppendString(&output,&func->text);
+            String_Appendf(&output,"\n");
+        }
+
         Files_WriteT(ll->output,output.Memory,output.size);
         String_Free(&output);
     }else{
@@ -729,6 +791,16 @@ void LuaLikeIR_Print(LuaLikeIR* ll) {
     printf("--- LuaLikeIR ---\n");
     printf("dlls: %s, src: %s, output: %s\n",ll->dllpath,ll->src,ll->output);
     CVector_Print(&ll->filesinc);
+
+    for(int i = 0;i<ll->ev.fs.size;i++){
+        Function* func = (Function*)Vector_Get(&ll->ev.fs,i);
+        if(func->text.size == 0) continue;
+        
+        CStr cstr = String_CStr(&func->text);
+        printf("\n%s\n",cstr);
+        CStr_Free(&cstr);
+    }
+
     Compiler_Print(&ll->ev);
     printf("--------------------------\n");
 }
