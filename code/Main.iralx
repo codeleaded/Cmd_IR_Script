@@ -3,3 +3,7 @@
 ;|
 
 
+fn main int .RETURN0,int a,int b
+    make	int	r
+    ret
+

@@ -60,7 +60,8 @@ void LuaLikeIR_Indentation_To(LuaLikeIR* ll,int indent){
 
 String* LuaLikeIR_FunctionText(LuaLikeIR* ll){
     //Compiler_FunctionIn
-    Function* f = FunctionMap_FindF(&ll->ev.fs,NULL);
+    CallPosition* cp = CallStack_FuncPeek(&ll->ev.cs);
+    Function* f = FunctionMap_FindF(&ll->ev.fs,cp->fname);
     if(f) return &f->text;
     return NULL;
 }
@@ -68,7 +69,8 @@ CStr LuaLikeIR_Indentation_CStr(LuaLikeIR* ll){
     String builder = String_New();
 
     int Indentation = LuaLikeIR_Indentation(ll);
-    for(int i = 0;i<Indentation;i++) String_Append(&builder,LUALIKEIR_INDENTATION);
+    for(int i = 0;i<Indentation;i++)
+        String_Append(&builder,LUALIKEIR_INDENTATION);
 
     CStr cstr = String_CStr(&builder);
     String_Free(&builder);
@@ -77,13 +79,28 @@ CStr LuaLikeIR_Indentation_CStr(LuaLikeIR* ll){
 void LuaLikeIR_Indentation_Do(LuaLikeIR* ll,String* str){
     if(LuaLikeIR_Indentation(ll)>0){
         CStr indent = LuaLikeIR_Indentation_CStr(ll);
-        String_Append(&ll->text,indent);
+        String_Append(str,indent);
         CStr_Free(&indent);
     }
 }
 void LuaLikeIR_Indentation_Append(LuaLikeIR* ll,String* str,char* cstr){
     LuaLikeIR_Indentation_Do(ll,str);
     String_Append(str,cstr);
+}
+void LuaLikeIR_Indentation_Appendln(LuaLikeIR* ll,String* str,char* cstr){
+    LuaLikeIR_Indentation_Do(ll,str);
+    String_Append(str,cstr);
+    String_AppendChar(str,'\n');
+}
+void LuaLikeIR_Indentation_Appendf(LuaLikeIR* ll,String* str,char* FormatCStr,...){
+    LuaLikeIR_Indentation_Do(ll,str);
+    
+    va_list args;
+    va_start(args,FormatCStr);
+    String app = String_FormatA(FormatCStr,args);
+    String_AppendString(str,&app);
+    String_Free(&app);
+    va_end(args);
 }
 void LuaLikeIR_Indentation_Appendfln(LuaLikeIR* ll,String* str,char* FormatCStr,...){
     LuaLikeIR_Indentation_Do(ll,str);
@@ -93,16 +110,6 @@ void LuaLikeIR_Indentation_Appendfln(LuaLikeIR* ll,String* str,char* FormatCStr,
     String app = String_FormatA(FormatCStr,args);
     String_AppendString(str,&app);
     String_AppendChar(str,'\n');
-    String_Free(&app);
-    va_end(args);
-}
-void LuaLikeIR_Indentation_Appendf(LuaLikeIR* ll,String* str,char* FormatCStr,...){
-    LuaLikeIR_Indentation_Do(ll,str);
-    
-    va_list args;
-    va_start(args,FormatCStr);
-    String app = String_FormatA(FormatCStr,args);
-    String_AppendString(str,&app);
     String_Free(&app);
     va_end(args);
 }
