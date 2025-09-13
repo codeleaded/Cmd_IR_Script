@@ -320,7 +320,7 @@ FunctionRT ShutingYard_type(LuaLikeIR* ll,TokenMap* tm){
     if(tm->size >= 2){
         Token* type = (Token*)Vector_Get(tm,0);
         Token* name = (Token*)Vector_Get(tm,1);
-        Scope_BuildVariable(&ll->ev.sc,name->str,type->str);
+        LuaLikeIR_BuildVariable(ll,name->str,type->str);
 
         String* funcstr = LuaLikeIR_FunctionText(ll);
         LuaLikeIR_Indentation_Appendfln(ll,funcstr,"make\t%s\t%s",type->str,name->str);
@@ -344,6 +344,8 @@ FunctionRT ShutingYard_Function(LuaLikeIR* ll,TokenMap* tm){
         
         //Token* function = (Token*)Vector_Get(tm,0);
         
+        ll->ev.sc.range++;
+
         if(func){
             for(int i = 0;i<func->params.size;i++){
                 Member* m = (Member*)Vector_Get(&func->params,i);
@@ -366,6 +368,7 @@ FunctionRT ShutingYard_end(LuaLikeIR* ll,TokenMap* tm){
             String* str = LuaLikeIR_FunctionText(ll);
             LuaLikeIR_Indentation_Appendln(ll,str,"ret");
             LuaLikeIR_Indentation_To(ll,0);
+            Scope_Pop(&ll->ev.sc);
         } break;
         default:{} break;
     }

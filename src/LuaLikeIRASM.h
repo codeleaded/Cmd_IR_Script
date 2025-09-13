@@ -38,6 +38,21 @@ void Define_Print(Define* d){
 }
 
 
+
+typedef struct VariableIR{
+    void* parent;
+} VariableIR;
+
+VariableIR VariableIR_New(void* parent){
+    VariableIR vir;
+    vir.parent = parent;
+    return vir;
+}
+void VariableIR_Free(VariableIR* vir){
+    
+}
+
+
 typedef struct LuaLikeIR {
     Compiler ev; // like inheritance
     CVector filesstack; // call stack of files -> path
@@ -112,6 +127,51 @@ void LuaLikeIR_Indentation_Appendfln(LuaLikeIR* ll,String* str,char* FormatCStr,
     String_AppendChar(str,'\n');
     String_Free(&app);
     va_end(args);
+}
+
+void LuaLikeIR_BuildVariable(LuaLikeIR* ll,CStr name,CStr type){
+    Scope_BuildInitVariable(&ll->ev.sc,name,type,(VariableIR[]){ VariableIR_New(ll) });
+}
+
+Token VariableIR_Init(VariableIR* ll,Token* op,Vector* args){
+    Token* a = (Token*)Vector_Get(args,0);
+
+    //printf("[VariableIR]: INIT: %s\n",a->str);
+    // Variable* v = Scope_FindVariable(&ll->ev.sc,a->str);
+    // if(v){
+    //     VariableIRVariable* sv = (VariableIRVariable*)Variable_Data(v);
+    //     int size = VariableIR_Size(ll,v->typename);
+        
+    //     if(v->range>0){
+    //         if(size>0){
+    //             ll->stack += size;
+    //             VariableIR_Indentation_Appendf(ll,&ll->text,"sub rsp,%d",size);
+    //         }
+    //         *sv = VariableIRVariable_New(ll->stack,0,1,ll);
+    //     }else{
+    //         *sv = VariableIRVariable_New(ll->stack,0,1,ll);
+    //         CStr value = VariableIR_BuildGlobal(ll,v->name,size);
+    //         sv->global = value;
+    //     }
+    // }
+    return Token_Cpy(a);
+}
+void VariableIR_Destroyer(Variable* v){
+    //printf("[VariableIR]: Destroyer: %s -> ",v->typename);
+    VariableIR* v_sv = (VariableIR*)Variable_Data(v);
+    if(v_sv->parent){
+        LuaLikeIR* ll = (LuaLikeIR*)v_sv->parent;
+        
+        String* funcstr = LuaLikeIR_FunctionText(ll);
+        LuaLikeIR_Indentation_Appendfln(ll,funcstr,"kill\t%s",v->name);
+    }
+    VariableIR_Free(v_sv);
+}
+void VariableIR_Cpyer(Variable* src,Variable* dst){
+    //printf("[VariableIR]: Cpyer!\n");
+    //VariableIRVariable* src_str = (VariableIRVariable*)Variable_Data(src);
+    //VariableIRVariable* dst_str = (VariableIRVariable*)Variable_Data(dst);
+    //*dst_str = VariableMap_Cpy(src_str);
 }
 
 CStr LuaLikeIR_Variablename_Next(LuaLikeIR* ll,CStr name,int offset){
