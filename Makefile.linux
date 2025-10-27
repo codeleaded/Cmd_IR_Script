@@ -42,7 +42,7 @@ $(BIN_DIR)/%.so: $(LIB_DIR)/%.c
 	$(CC) $(CFLAGS) -fPIC -o $@ $< -shared $(LDFLAGS)
 
 win:
-	$(CC) $(CFLAGS) -fPIC -o ./$(BIN_DIR)/window.so ./$(LIB_DIR)/window.c -shared $(LDFLAGS) -lX11 -lpng
+	$(CC) $(CFLAGS) -fPIC -o ./$(BIN_DIR)/window.so ./$(LIB_DIR)/window.c -shared $(LDFLAGS) -lX11 -lpng -ljpeg
 
 do: clean all exe
 
