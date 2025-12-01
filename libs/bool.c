@@ -1,6 +1,6 @@
 #include "/home/codeleaded/System/Static/Library/AlxCallStack.h"
 #include "/home/codeleaded/System/Static/Library/AlxExternFunctions.h"
-#include "/home/codeleaded/System/Static/Library/LuaLikeDefines.h"
+#include "/home/codeleaded/System/Static/Library/IntraIRDefines.h"
 
 Boolean Implementation_BooleanOf(Scope* s,Token* a){
     Boolean n = 0;
@@ -124,17 +124,17 @@ void Ex_Packer(ExternFunctionMap* Extern_Functions,Vector* funcs,Scope* s){//Vec
     TypeMap_PushContained(&s->types,funcs,
         Type_New("bool",sizeof(Boolean),OperatorInterationMap_Make((OperatorInterater[]){
             OperatorInterater_Make((CStr[]){ NULL },OperatorDefineMap_Make((OperatorDefiner[]){
-                OperatorDefiner_New(TOKEN_LUALIKE_LOT,  (Token(*)(void*,Token*,Vector*))Boolean_Handler_Not),
+                OperatorDefiner_New(TOKEN_INTRAIR_LOT,  (Token(*)(void*,Token*,Vector*))Boolean_Handler_Not),
                 OperatorDefiner_New(TOKEN_CAST,         (Token(*)(void*,Token*,Vector*))Boolean_Handler_Cast),
                 OperatorDefiner_New(TOKEN_INIT,NULL),
                 OperatorDefiner_New(TOKEN_DESTROY,NULL),
                 OPERATORDEFINER_END
             })),
             OperatorInterater_Make((CStr[]){ "bool",NULL },OperatorDefineMap_Make((OperatorDefiner[]){
-                OperatorDefiner_New(TOKEN_LUALIKE_ASS,  (Token(*)(void*,Token*,Vector*))Boolean_Boolean_Handler_Ass),
-                OperatorDefiner_New(TOKEN_LUALIKE_EQU,  (Token(*)(void*,Token*,Vector*))Boolean_Boolean_Handler_Equ),
-                OperatorDefiner_New(TOKEN_LUALIKE_LND,  (Token(*)(void*,Token*,Vector*))Boolean_Boolean_Handler_And),
-                OperatorDefiner_New(TOKEN_LUALIKE_LOR,  (Token(*)(void*,Token*,Vector*))Boolean_Boolean_Handler_Or),
+                OperatorDefiner_New(TOKEN_INTRAIR_ASS,  (Token(*)(void*,Token*,Vector*))Boolean_Boolean_Handler_Ass),
+                OperatorDefiner_New(TOKEN_INTRAIR_EQU,  (Token(*)(void*,Token*,Vector*))Boolean_Boolean_Handler_Equ),
+                OperatorDefiner_New(TOKEN_INTRAIR_LND,  (Token(*)(void*,Token*,Vector*))Boolean_Boolean_Handler_And),
+                OperatorDefiner_New(TOKEN_INTRAIR_LOR,  (Token(*)(void*,Token*,Vector*))Boolean_Boolean_Handler_Or),
                 OPERATORDEFINER_END
             })),
             OPERATORINTERATER_END

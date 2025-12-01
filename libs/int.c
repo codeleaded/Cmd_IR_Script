@@ -1,8 +1,6 @@
 #include "/home/codeleaded/System/Static/Library/AlxCallStack.h"
 #include "/home/codeleaded/System/Static/Library/AlxExternFunctions.h"
-#include "/home/codeleaded/Hecke/C/Cmd_IR_Script/src/IntraIRASM.h"
-//#include "/home/codeleaded/System/Static/Library/LuaLikeDefines.h"
-//#include "/home/codeleaded/Hecke/C/Cmd_Scripter/src/LuaLike.h"
+#include "/home/codeleaded/System/Static/Library/IntraIR.h"
 
 Number Implementation_IntOf(Scope* s,Token* a){
     Number n = NUMBER_PARSE_ERROR;
@@ -195,23 +193,23 @@ void Ex_Packer(ExternFunctionMap* Extern_Functions,Vector* funcs,Scope* s){//Vec
     TypeMap_PushContained(&s->types,funcs,
         Type_New("int",sizeof(VariableIR),OperatorInterationMap_Make((OperatorInterater[]){
             OperatorInterater_Make((CStr[]){ NULL },OperatorDefineMap_Make((OperatorDefiner[]){
-                OperatorDefiner_New(TOKEN_LUALIKE_NEG,  (Token(*)(void*,Token*,Vector*))Int_Int_Handler_Neg),
+                OperatorDefiner_New(TOKEN_INTRAIR_NEG,  (Token(*)(void*,Token*,Vector*))Int_Int_Handler_Neg),
                 OperatorDefiner_New(TOKEN_CAST,         (Token(*)(void*,Token*,Vector*))Int_Handler_Cast),
                 OperatorDefiner_New(TOKEN_INIT,NULL),
                 OperatorDefiner_New(TOKEN_DESTROY,NULL),
                 OPERATORDEFINER_END
             })),
             OperatorInterater_Make((CStr[]){ "int",NULL },OperatorDefineMap_Make((OperatorDefiner[]){
-                OperatorDefiner_New(TOKEN_LUALIKE_ASS,  (Token(*)(void*,Token*,Vector*))Int_Int_Handler_Ass),
-                OperatorDefiner_New(TOKEN_LUALIKE_ADD,  (Token(*)(void*,Token*,Vector*))Int_Int_Handler_Add),
-                OperatorDefiner_New(TOKEN_LUALIKE_SUB,  (Token(*)(void*,Token*,Vector*))Int_Int_Handler_Sub),
-                OperatorDefiner_New(TOKEN_LUALIKE_MUL,  (Token(*)(void*,Token*,Vector*))Int_Int_Handler_Mul),
-                OperatorDefiner_New(TOKEN_LUALIKE_DIV,  (Token(*)(void*,Token*,Vector*))Int_Int_Handler_Div),
-                OperatorDefiner_New(TOKEN_LUALIKE_EQU,  (Token(*)(void*,Token*,Vector*))Int_Int_Handler_Equ),
-                OperatorDefiner_New(TOKEN_LUALIKE_LES,  (Token(*)(void*,Token*,Vector*))Int_Int_Handler_Les),
-                OperatorDefiner_New(TOKEN_LUALIKE_GRT,  (Token(*)(void*,Token*,Vector*))Int_Int_Handler_Grt),
-                OperatorDefiner_New(TOKEN_LUALIKE_LEQ,  (Token(*)(void*,Token*,Vector*))Int_Int_Handler_Leq),
-                OperatorDefiner_New(TOKEN_LUALIKE_GRQ,  (Token(*)(void*,Token*,Vector*))Int_Int_Handler_Grq),
+                OperatorDefiner_New(TOKEN_INTRAIR_ASS,  (Token(*)(void*,Token*,Vector*))Int_Int_Handler_Ass),
+                OperatorDefiner_New(TOKEN_INTRAIR_ADD,  (Token(*)(void*,Token*,Vector*))Int_Int_Handler_Add),
+                OperatorDefiner_New(TOKEN_INTRAIR_SUB,  (Token(*)(void*,Token*,Vector*))Int_Int_Handler_Sub),
+                OperatorDefiner_New(TOKEN_INTRAIR_MUL,  (Token(*)(void*,Token*,Vector*))Int_Int_Handler_Mul),
+                OperatorDefiner_New(TOKEN_INTRAIR_DIV,  (Token(*)(void*,Token*,Vector*))Int_Int_Handler_Div),
+                OperatorDefiner_New(TOKEN_INTRAIR_EQU,  (Token(*)(void*,Token*,Vector*))Int_Int_Handler_Equ),
+                OperatorDefiner_New(TOKEN_INTRAIR_LES,  (Token(*)(void*,Token*,Vector*))Int_Int_Handler_Les),
+                OperatorDefiner_New(TOKEN_INTRAIR_GRT,  (Token(*)(void*,Token*,Vector*))Int_Int_Handler_Grt),
+                OperatorDefiner_New(TOKEN_INTRAIR_LEQ,  (Token(*)(void*,Token*,Vector*))Int_Int_Handler_Leq),
+                OperatorDefiner_New(TOKEN_INTRAIR_GRQ,  (Token(*)(void*,Token*,Vector*))Int_Int_Handler_Grq),
                 OPERATORDEFINER_END
             })),
             OPERATORINTERATER_END

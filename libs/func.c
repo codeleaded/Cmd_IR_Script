@@ -1,7 +1,6 @@
 #include "/home/codeleaded/System/Static/Library/AlxCallStack.h"
 #include "/home/codeleaded/System/Static/Library/AlxExternFunctions.h"
-#include "/home/codeleaded/System/Static/Library/LuaLikeDefines.h"
-//#include "/home/codeleaded/Hecke/C/Cmd_Scripter/src/LuaLike.h"
+#include "/home/codeleaded/System/Static/Library/IntraIR.h"
 
 
 typedef CStr Functype;
@@ -111,7 +110,7 @@ void Ex_Packer(ExternFunctionMap* Extern_Functions,Vector* funcs,Scope* s){//Vec
                 OPERATORDEFINER_END
             })),
             OperatorInterater_Make((CStr[]){ "func",NULL },OperatorDefineMap_Make((OperatorDefiner[]){
-                OperatorDefiner_New(TOKEN_LUALIKE_ASS,(Token(*)(void*,Token*,Vector*))Func_Func_Handler_Ass),
+                OperatorDefiner_New(TOKEN_INTRAIR_ASS,(Token(*)(void*,Token*,Vector*))Func_Func_Handler_Ass),
                 OPERATORDEFINER_END
             })),
             OPERATORINTERATER_END

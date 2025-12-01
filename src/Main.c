@@ -1,8 +1,8 @@
-#include "IntraIR.h"
+#include "/home/codeleaded/System/Static/Library/IntraIR.h"
 
 int main(int argc,char** argv){
     if(argc<=1){
-        printf("Missing Src File ."LUALIKE_TYPE"!\n");
+        printf("Missing Src File ."INTRAIR_TYPE"!\n");
         return 1;
     }
     if(argc<=2){
