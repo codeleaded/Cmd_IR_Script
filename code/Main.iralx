@@ -3,19 +3,19 @@
 ;|
 
 
-fn addfunc int .RETURN0,int a,int b
-    make	int	.STACK0
-    add		int	.STACK0,a,b
-    ass		int	.RETURN0,.STACK0
-    kill	.STACK0
+fn addfunc int VAR.RETURN0,int a,int b
+    make	int	VAR.STACK0
+    add		int	VAR.STACK0,a,b
+    ass		int	VAR.RETURN0,VAR.STACK0
+    kill	VAR.STACK0
     ret
     ret
 
-fn main int .RETURN0
+fn main int VAR.RETURN0
     ass		int	.a,1
     ass		int	.b,2
     call	addfunc
-    ass		int	.RETURN0,.RETURN0
+    ass		int	VAR.RETURN0,.RETURN0
     ret
     ret
 
