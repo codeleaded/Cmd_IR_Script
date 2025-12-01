@@ -1,6 +1,6 @@
 #include "/home/codeleaded/System/Static/Library/AlxCallStack.h"
 #include "/home/codeleaded/System/Static/Library/AlxExternFunctions.h"
-#include "/home/codeleaded/Hecke/C/Cmd_IR_Script/src/LuaLikeIRASM.h"
+#include "/home/codeleaded/Hecke/C/Cmd_IR_Script/src/IntraIRASM.h"
 //#include "/home/codeleaded/System/Static/Library/LuaLikeDefines.h"
 //#include "/home/codeleaded/Hecke/C/Cmd_Scripter/src/LuaLike.h"
 

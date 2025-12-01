@@ -1,5 +1,5 @@
-#ifndef LUALIKEIR_H
-#define LUALIKEIR_H
+#ifndef INTRAIR_H
+#define INTRAIR_H
 
 #include "/home/codeleaded/System/Static/Library/AlxScope.h"
 #include "/home/codeleaded/System/Static/Library/AlxShutingYard.h"
@@ -10,12 +10,12 @@
 #include "/home/codeleaded/System/Static/Library/String.h"
 #include "/home/codeleaded/System/Static/Library/../Container/CVector.h"
 
-#include "LuaLikeIRDefines.h"
-#include "LuaLikeIRASM.h"
+#include "IntraIRDefines.h"
+#include "IntraIRASM.h"
 
-FunctionRT ShutingYard_compress(LuaLikeIR* ll,TokenMap* tm);
+FunctionRT ShutingYard_compress(IntraIR* ll,TokenMap* tm);
 
-FunctionRT ShutingYard_compress_staticmethods(LuaLikeIR* ll,TokenMap* tm){
+FunctionRT ShutingYard_compress_staticmethods(IntraIR* ll,TokenMap* tm){
     for(int i = 0;i<tm->size;i++){
         Token* class = (Token*)Vector_Get(tm,i);
         
@@ -45,7 +45,7 @@ FunctionRT ShutingYard_compress_staticmethods(LuaLikeIR* ll,TokenMap* tm){
     }
     return FUNCTIONRT_NONE;
 }
-FunctionRT ShutingYard_compress_cast(LuaLikeIR* ll,TokenMap* tm){
+FunctionRT ShutingYard_compress_cast(IntraIR* ll,TokenMap* tm){
     for(int i = 0;i<tm->size;i++){
         Token* pretl = (Token*)Vector_Get(tm,i);
         Token* type = (Token*)Vector_Get(tm,i+1);
@@ -59,7 +59,7 @@ FunctionRT ShutingYard_compress_cast(LuaLikeIR* ll,TokenMap* tm){
     }
     return False;
 }
-FunctionRT ShutingYard_compress_decl(LuaLikeIR* ll,TokenMap* tm){
+FunctionRT ShutingYard_compress_decl(IntraIR* ll,TokenMap* tm){
     for(int i = 0;i + 2<tm->size;i++){
         Token* name = (Token*)Vector_Get(tm,i);
         Token* ddot = (Token*)Vector_Get(tm,i+1);
@@ -73,7 +73,7 @@ FunctionRT ShutingYard_compress_decl(LuaLikeIR* ll,TokenMap* tm){
     }
     return False;
 }
-FunctionRT ShutingYard_compress_objects(LuaLikeIR* ll,TokenMap* tm){
+FunctionRT ShutingYard_compress_objects(IntraIR* ll,TokenMap* tm){
     for(int i = 0;i+1<tm->size;i++){
         Token* prentl = (Token*)Vector_Get(tm,i);
 
@@ -110,7 +110,7 @@ FunctionRT ShutingYard_compress_objects(LuaLikeIR* ll,TokenMap* tm){
     }
     return FUNCTIONRT_NONE;
 }
-FunctionRT ShutingYard_compress_subscript(LuaLikeIR* ll,TokenMap* tm){
+FunctionRT ShutingYard_compress_subscript(IntraIR* ll,TokenMap* tm){
     for(int i = 0;i<tm->size;i++){
         Token* subs = (Token*)Vector_Get(tm,i);
 
@@ -124,7 +124,7 @@ FunctionRT ShutingYard_compress_subscript(LuaLikeIR* ll,TokenMap* tm){
     }
     return FUNCTIONRT_NONE;
 }
-FunctionRT ShutingYard_compress_functioncalls(LuaLikeIR* ll,TokenMap* tm){
+FunctionRT ShutingYard_compress_functioncalls(IntraIR* ll,TokenMap* tm){
     for(int i = 0;i+1<tm->size;i++){
         Token* func = (Token*)Vector_Get(tm,i);
         Token* prentl = (Token*)Vector_Get(tm,i+1);
@@ -162,7 +162,7 @@ FunctionRT ShutingYard_compress_functioncalls(LuaLikeIR* ll,TokenMap* tm){
     }
     return FUNCTIONRT_NONE;
 }
-FunctionRT ShutingYard_compress_functiontoFunc(LuaLikeIR* ll,TokenMap* tm){
+FunctionRT ShutingYard_compress_functiontoFunc(IntraIR* ll,TokenMap* tm){
     for(int i = 0;i<tm->size;i++){
         Token* func = (Token*)Vector_Get(tm,i);
 
@@ -175,7 +175,7 @@ FunctionRT ShutingYard_compress_functiontoFunc(LuaLikeIR* ll,TokenMap* tm){
     }
     return FUNCTIONRT_NONE;
 }
-FunctionRT ShutingYard_compress(LuaLikeIR* ll,TokenMap* tm){
+FunctionRT ShutingYard_compress(IntraIR* ll,TokenMap* tm){
     //ShutingYard_compress_objects(ll,tm);
     
     ShutingYard_compress_decl(ll,tm);
@@ -186,7 +186,7 @@ FunctionRT ShutingYard_compress(LuaLikeIR* ll,TokenMap* tm){
     ShutingYard_compress_functiontoFunc(ll,tm);
     return FUNCTIONRT_NONE;
 }
-FunctionRT ShutingYard_function(LuaLikeIR* ll,TokenMap* tm){
+FunctionRT ShutingYard_function(IntraIR* ll,TokenMap* tm){
     CStr name = ((Token*)Vector_Get(tm,1))->str;
     Vector params = Vector_New(sizeof(Member));
 
@@ -269,18 +269,18 @@ FunctionRT ShutingYard_function(LuaLikeIR* ll,TokenMap* tm){
     return FUNCTIONRT_NONE;
 }
 
-FunctionRT ShutingYard_Import(LuaLikeIR* ll,TokenMap* tm){
+FunctionRT ShutingYard_Import(IntraIR* ll,TokenMap* tm){
     // TODO with as -> Objects & access using . & :: (Methods and Members)
     return FUNCTIONRT_NONE;
 }
-FunctionRT ShutingYard_From(LuaLikeIR* ll,TokenMap* tm){
+FunctionRT ShutingYard_From(IntraIR* ll,TokenMap* tm){
     Token* Package = (Token*)Vector_Get(tm,1);
     Token* Import = (Token*)Vector_Get(tm,2);
     Token* Asterisk = (Token*)Vector_Get(tm,3);
 
     return FUNCTIONRT_NONE;
 }
-FunctionRT ShutingYard_Include(LuaLikeIR* ll,TokenMap* tm){
+FunctionRT ShutingYard_Include(IntraIR* ll,TokenMap* tm){
     Token* file = (Token*)Vector_Get(tm,1);
 
     if(file->tt==TOKEN_CONSTSTRING_DOUBLE){
@@ -312,18 +312,18 @@ FunctionRT ShutingYard_Include(LuaLikeIR* ll,TokenMap* tm){
 
     return FUNCTIONRT_NONE;
 }
-FunctionRT ShutingYard_Class(LuaLikeIR* ll,TokenMap* tm){
+FunctionRT ShutingYard_Class(IntraIR* ll,TokenMap* tm){
     return FUNCTIONRT_NONE;
 }
 
-FunctionRT ShutingYard_type(LuaLikeIR* ll,TokenMap* tm){
+FunctionRT ShutingYard_type(IntraIR* ll,TokenMap* tm){
     if(tm->size >= 2){
         Token* type = (Token*)Vector_Get(tm,0);
         Token* name = (Token*)Vector_Get(tm,1);
-        LuaLikeIR_BuildVariable(ll,name->str,type->str);
+        IntraIR_BuildVariable(ll,name->str,type->str);
 
-        String* funcstr = LuaLikeIR_FunctionText(ll);
-        LuaLikeIR_Indentation_Appendfln(ll,funcstr,"make\t%s\t%s",type->str,name->str);
+        String* funcstr = IntraIR_FunctionText(ll);
+        IntraIR_Indentation_Appendfln(ll,funcstr,"make\t%s\t%s",type->str,name->str);
         
         TokenMap cpy = TokenMap_Cpy(tm);
         TokenMap_RemoveI(&cpy,0);
@@ -333,14 +333,14 @@ FunctionRT ShutingYard_type(LuaLikeIR* ll,TokenMap* tm){
     }
     return FUNCTIONRT_NONE;
 }
-FunctionRT ShutingYard_Function(LuaLikeIR* ll,TokenMap* tm){
+FunctionRT ShutingYard_Function(IntraIR* ll,TokenMap* tm){
     if(tm->size >= 2){
         Token* name = (Token*)Vector_Get(tm,1);
         Function* func = FunctionMap_FindF(&ll->ev.fs,name->str);
 
         CallPosition cp = CallPosition_Make(TokenMap_New(),TOKEN_FUNCTION,ll->ev.iter,name->str,ll->ev.sc.range);
         Vector_Push(&ll->ev.cs,&cp);
-        LuaLikeIR_Indentation_To(ll,1);
+        IntraIR_Indentation_To(ll,1);
         
         //Token* function = (Token*)Vector_Get(tm,0);
         
@@ -357,17 +357,17 @@ FunctionRT ShutingYard_Function(LuaLikeIR* ll,TokenMap* tm){
     }
     return FUNCTIONRT_NONE;
 }
-FunctionRT ShutingYard_return(LuaLikeIR* ll,TokenMap* tm){
+FunctionRT ShutingYard_return(IntraIR* ll,TokenMap* tm){
     return FUNCTIONRT_NONE;
 }
-FunctionRT ShutingYard_end(LuaLikeIR* ll,TokenMap* tm){
+FunctionRT ShutingYard_end(IntraIR* ll,TokenMap* tm){
     CallPosition* cp = CallStack_Peek(&ll->ev.cs);
     
     switch(cp->type){
         case TOKEN_FUNCTION:{
-            String* str = LuaLikeIR_FunctionText(ll);
-            LuaLikeIR_Indentation_Appendln(ll,str,"ret");
-            LuaLikeIR_Indentation_To(ll,0);
+            String* str = IntraIR_FunctionText(ll);
+            IntraIR_Indentation_Appendln(ll,str,"ret");
+            IntraIR_Indentation_To(ll,0);
             Scope_Pop(&ll->ev.sc);
         } break;
         default:{} break;
@@ -376,23 +376,23 @@ FunctionRT ShutingYard_end(LuaLikeIR* ll,TokenMap* tm){
     CallStack_Pop(&ll->ev.cs);
     return FUNCTIONRT_NONE;
 }
-FunctionRT ShutingYard_if(LuaLikeIR* ll,TokenMap* tm){
+FunctionRT ShutingYard_if(IntraIR* ll,TokenMap* tm){
     return FUNCTIONRT_NONE;
 }
-FunctionRT ShutingYard_elif(LuaLikeIR* ll,TokenMap* tm){
+FunctionRT ShutingYard_elif(IntraIR* ll,TokenMap* tm){
     return FUNCTIONRT_NONE;
 }
-FunctionRT ShutingYard_else(LuaLikeIR* ll,TokenMap* tm){
+FunctionRT ShutingYard_else(IntraIR* ll,TokenMap* tm){
     return FUNCTIONRT_NONE;
 }
-FunctionRT ShutingYard_while(LuaLikeIR* ll,TokenMap* tm){
+FunctionRT ShutingYard_while(IntraIR* ll,TokenMap* tm){
     return FUNCTIONRT_NONE;
 }
-FunctionRT ShutingYard_for(LuaLikeIR* ll,TokenMap* tm){
+FunctionRT ShutingYard_for(IntraIR* ll,TokenMap* tm){
     return FUNCTIONRT_NONE;
 }
 
-Boolean ShutingYard_FunctionCall_Acs(LuaLikeIR* ll,TokenMap* tm,int i,int args,Token* tok){
+Boolean ShutingYard_FunctionCall_Acs(IntraIR* ll,TokenMap* tm,int i,int args,Token* tok){
     Token* accssed = (Token*)Vector_Get(tm,i - args);
     Token* func = (Token*)Vector_Get(tm,i - args + 1);
 
@@ -457,16 +457,16 @@ Boolean ShutingYard_FunctionCall_Acs(LuaLikeIR* ll,TokenMap* tm,int i,int args,T
         
     return FUNCTIONRT_NONE;
 }
-void LuaLikeIR_Function_Handler(LuaLikeIR* ll,Token* t,Function* f){
+void IntraIR_Function_Handler(IntraIR* ll,Token* t,Function* f){
     if(t->tt==TOKEN_FUNCTION){
-        LuaLikeIR_Indentation_Appendf(ll,&ll->text,"call %s",f->name);
+        IntraIR_Indentation_Appendf(ll,&ll->text,"call %s",f->name);
     }else{
         Compiler_ErrorHandler(&ll->ev,"Function: %s doesn't exist!",t->str);
     }
 }
 
-LuaLikeIR LuaLikeIR_New(char* dllpath,char* src,char* output,char bits) {
-    LuaLikeIR ll;
+IntraIR IntraIR_New(char* dllpath,char* src,char* output,char bits) {
+    IntraIR ll;
     ll.ev = Compiler_New(
         KeywordMap_Make((KeywordRP[]){
             KeywordRP_New("function",TOKEN_LUALIKE_FUNCTION),
@@ -727,8 +727,8 @@ LuaLikeIR LuaLikeIR_New(char* dllpath,char* src,char* output,char bits) {
             DTT_TYPE_END
         }),
         Token_By(TOKEN_LUALIKE_ASS,"="),
-        (void*)LuaLikeIR_LogicCorrection,
-        (void*)LuaLikeIR_Function_Handler
+        (void*)IntraIR_LogicCorrection,
+        (void*)IntraIR_Function_Handler
     );
     ll.logic = TOKEN_NONE;
     ll.indent = 0U;
@@ -753,14 +753,14 @@ LuaLikeIR LuaLikeIR_New(char* dllpath,char* src,char* output,char bits) {
     CVector_PopTop(&ll.filesstack);
     return ll;
 }
-void LuaLikeIR_PrintVariable(LuaLikeIR* ll,Variable* v) {
+void IntraIR_PrintVariable(IntraIR* ll,Variable* v) {
     Scope_PrintVariableDirect(&ll->ev.sc,v);
 }
-void LuaLikeIR_Build(LuaLikeIR* ll) {
+void IntraIR_Build(IntraIR* ll) {
     Compiler_Begin(&ll->ev);
     
     if(!ll->ev.error){
-        String output = String_Format(";|\n;| LuaLikeIR by codeleaded\n;|\n\n");
+        String output = String_Format(";|\n;| IntraIR by codeleaded\n;|\n\n");
         String_AppendString(&output,&ll->text);
         String_Append(&output,"\n");
 
@@ -793,7 +793,7 @@ void LuaLikeIR_Build(LuaLikeIR* ll) {
         printf("%s-> %sbuild aborted because of Errors!%s\n",ANSI_FG_GRAY,ANSI_FG_RED,ANSI_FG_WHITE);
     }
 }
-void LuaLikeIR_Free(LuaLikeIR* ll) {
+void IntraIR_Free(IntraIR* ll) {
     String_Free(&ll->text);
     
     CStr_Free(&ll->dllpath);
@@ -807,8 +807,8 @@ void LuaLikeIR_Free(LuaLikeIR* ll) {
 
     Vector_Free(&ll->logicpath);
 }
-void LuaLikeIR_Print(LuaLikeIR* ll) {
-    printf("--- LuaLikeIR ---\n");
+void IntraIR_Print(IntraIR* ll) {
+    printf("--- IntraIR ---\n");
     printf("dlls: %s, src: %s, output: %s\n",ll->dllpath,ll->src,ll->output);
     CVector_Print(&ll->filesinc);
 
