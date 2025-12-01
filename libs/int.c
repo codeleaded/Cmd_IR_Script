@@ -2,191 +2,157 @@
 #include "/home/codeleaded/System/Static/Library/AlxExternFunctions.h"
 #include "/home/codeleaded/System/Static/Library/IntraIR.h"
 
-Number Implementation_IntOf(Scope* s,Token* a){
-    Number n = NUMBER_PARSE_ERROR;
-    if(a->tt==TOKEN_STRING){
-        Variable* a_var = Scope_FindVariable(s,a->str);
-        if(a_var){
-            n = *(Number*)Variable_Data(a_var);
-        }else{
-            printf("[Int_Number]: 1. Arg: Variable %s doesn't exist!\n",a->str);
+char Int_All_Const(Vector* args){
+    if(args->size <= 0) return 0;
+
+    for(int i = 0;i<args->size;i++){
+        Token* t = (Token*)Vector_Get(args,i);
+        if(t->tt != TOKEN_NUMBER){
+            return 0;
         }
-    }else if(a->tt==TOKEN_NUMBER){
-        n = Number_Parse(a->str);
-    }else if(a->tt==TOKEN_FLOAT){
-        n = (Number)Double_Parse(a->str,1);
-    }else{
-        printf("[Int_Number]: 1. Arg: %s is not a int type!\n",a->str);
     }
-    return n;
+    return 1;
 }
 
-Token Int_Int_Handler_Ass(Scope* s,Token* op,Vector* args){
-    Token* a = (Token*)Vector_Get(args,0);
-    Token* b = (Token*)Vector_Get(args,1);
-
-    //printf("(int,int) ASS: %s = %s\n",a->str,b->str);
-
-    Number n2 = Implementation_IntOf(s,b);
-    
-    if(a->tt==TOKEN_STRING){
-        Variable* a_var = Scope_FindVariable(s,a->str);
-        if(a_var){
-            Variable_PrepairFor(a_var,sizeof(Number),"int",NULL,NULL);
-            Variable_SetTo(a_var,(Number[]){ n2 });
-        }else{
-            Scope_BuildInitVariableRange(s,a->str,"int",s->range-1,(Number[]){ n2 });
+Token Int_Int_Handler_Ass(IntraIR* ll,Token* op,Vector* args){
+    return IntraIR_ExecuteAss(ll,IR_OP_ASS,IR_TYPE_INT,args);
+}
+Token Int_Int_Handler_Add(IntraIR* ll,Token* op,Vector* args){
+    if(Int_All_Const(args)){
+        Token* src = (Token*)Vector_Get(args,0);
+        Number ret = Number_Parse(src->str);
+        for(int i = 1;i<args->size;i++){
+            Token* argi = (Token*)Vector_Get(args,i);
+            ret += Number_Parse(argi->str);
         }
-    }else{
-        printf("[Int_Ass]: 1. Arg: %s is not a variable type!\n",a->str);
+        return Token_Move(TOKEN_NUMBER,Number_Get(ret));
     }
-
-    Number res = n2;
-
-    char* resstr = Number_Get(res);
-    return Token_Move(TOKEN_NUMBER,resstr);
+    return IntraIR_Execute(ll,IR_OP_ADD,IR_TYPE_INT,args);
 }
-Token Int_Int_Handler_Add(Scope* s,Token* op,Vector* args){
-    Token* a = (Token*)Vector_Get(args,0);
-    Token* b = (Token*)Vector_Get(args,1);
-
-    //printf("ADD: %s + %s\n",a->str,b->str);
-
-    Number n1 = Implementation_IntOf(s,a);
-    Number n2 = Implementation_IntOf(s,b);
-    Number res = n1 + n2;
-
-    char* resstr = Number_Get(res);
-    return Token_Move(TOKEN_NUMBER,resstr);
-}
-Token Int_Int_Handler_Sub(Scope* s,Token* op,Vector* args){
-    Token* a = (Token*)Vector_Get(args,0);
-    Token* b = (Token*)Vector_Get(args,1);
-
-    //printf("SUB: %s - %s\n",a->str,b->str);
-
-    Number n1 = Implementation_IntOf(s,a);
-    Number n2 = Implementation_IntOf(s,b);
-    Number res = n1 - n2;
-
-    char* resstr = Number_Get(res);
-    return Token_Move(TOKEN_NUMBER,resstr);
-}
-Token Int_Int_Handler_Mul(Scope* s,Token* op,Vector* args){
-    Token* a = (Token*)Vector_Get(args,0);
-    Token* b = (Token*)Vector_Get(args,1);
-
-    //printf("MUL: %s * %s\n",a->str,b->str);
-
-    Number n1 = Implementation_IntOf(s,a);
-    Number n2 = Implementation_IntOf(s,b);
-    Number res = n1 * n2;
-
-    char* resstr = Number_Get(res);
-    return Token_Move(TOKEN_NUMBER,resstr);
-}
-Token Int_Int_Handler_Div(Scope* s,Token* op,Vector* args){
-    Token* a = (Token*)Vector_Get(args,0);
-    Token* b = (Token*)Vector_Get(args,1);
-
-    //printf("DIV: %s / %s\n",a->str,b->str);
-
-    Number n1 = Implementation_IntOf(s,a);
-    Number n2 = Implementation_IntOf(s,b);
-
-    Number res = 0;
-    if(n2!=0) res = n1 / n2;
-    else{
-        printf("[Enviroment]: Error: DIV by Zero\n");
+Token Int_Int_Handler_Sub(IntraIR* ll,Token* op,Vector* args){
+    if(Int_All_Const(args)){
+        Token* src = (Token*)Vector_Get(args,0);
+        Number ret = Number_Parse(src->str);
+        for(int i = 1;i<args->size;i++){
+            Token* argi = (Token*)Vector_Get(args,i);
+            ret -= Number_Parse(argi->str);
+        }
+        return Token_Move(TOKEN_NUMBER,Number_Get(ret));
     }
-
-    char* resstr = Number_Get(res);
-    return Token_Move(TOKEN_NUMBER,resstr);
+    return IntraIR_Execute(ll,IR_OP_SUB,IR_TYPE_INT,args);
 }
-Token Int_Int_Handler_Neg(Scope* s,Token* op,Vector* args){
-    Token* a = (Token*)Vector_Get(args,0);
-
-    //printf("NEG: -%s\n",a->str);
-
-    Number n1 = Implementation_IntOf(s,a);
-    Number res = -n1;
-
-    char* resstr = Number_Get(res);
-    return Token_Move(TOKEN_NUMBER,resstr);
+Token Int_Int_Handler_Mul(IntraIR* ll,Token* op,Vector* args){
+    if(Int_All_Const(args)){
+        Token* src = (Token*)Vector_Get(args,0);
+        Number ret = Number_Parse(src->str);
+        for(int i = 1;i<args->size;i++){
+            Token* argi = (Token*)Vector_Get(args,i);
+            ret *= Number_Parse(argi->str);
+        }
+        return Token_Move(TOKEN_NUMBER,Number_Get(ret));
+    }
+    return IntraIR_Execute(ll,IR_OP_MUL,IR_TYPE_INT,args);
 }
-Token Int_Int_Handler_Equ(Scope* s,Token* op,Vector* args){
-    Token* a = (Token*)Vector_Get(args,0);
-    Token* b = (Token*)Vector_Get(args,1);
-
-    //printf("EQU: %s == %s\n",a->str,b->str);
-
-    Number n1 = Implementation_IntOf(s,a);
-    Number n2 = Implementation_IntOf(s,b);
-    Boolean res = n1 == n2;
-
-    char* resstr = Boolean_Get(res);
-    return Token_Move(TOKEN_BOOL,resstr);
+Token Int_Int_Handler_Div(IntraIR* ll,Token* op,Vector* args){
+    if(Int_All_Const(args)){
+        Token* src = (Token*)Vector_Get(args,0);
+        Number ret = Number_Parse(src->str);
+        for(int i = 1;i<args->size;i++){
+            Token* argi = (Token*)Vector_Get(args,i);
+            ret /= Number_Parse(argi->str);
+        }
+        return Token_Move(TOKEN_NUMBER,Number_Get(ret));
+    }
+    return IntraIR_Execute(ll,IR_OP_DIV,IR_TYPE_INT,args);
 }
-Token Int_Int_Handler_Les(Scope* s,Token* op,Vector* args){
-    Token* a = (Token*)Vector_Get(args,0);
-    Token* b = (Token*)Vector_Get(args,1);
-
-    //printf("LES: %s < %s\n",a->str,b->str);
-
-    Number n1 = Implementation_IntOf(s,a);
-    Number n2 = Implementation_IntOf(s,b);
-    Boolean res = n1 < n2;
-
-    char* resstr = Boolean_Get(res);
-    return Token_Move(TOKEN_BOOL,resstr);
+Token Int_Int_Handler_Neg(IntraIR* ll,Token* op,Vector* args){
+    return IntraIR_Execute(ll,IR_OP_NEG,IR_TYPE_INT,args);
 }
-Token Int_Int_Handler_Grt(Scope* s,Token* op,Vector* args){
-    Token* a = (Token*)Vector_Get(args,0);
-    Token* b = (Token*)Vector_Get(args,1);
 
-    //printf("GRT: %s > %s\n",a->str,b->str);
+Token Int_Int_Handler_Equ(IntraIR* ll,Token* op,Vector* args){
+    if(Int_All_Const(args)){
+        Token* src = (Token*)Vector_Get(args,0);
+        Number ret = Number_Parse(src->str);
 
-    Number n1 = Implementation_IntOf(s,a);
-    Number n2 = Implementation_IntOf(s,b);
-    Boolean res = n1 > n2;
-
-    char* resstr = Boolean_Get(res);
-    return Token_Move(TOKEN_BOOL,resstr);
+        for(int i = 1;i<args->size;i++){
+            Token* argi = (Token*)Vector_Get(args,i);
+            
+            if(!(ret == Number_Parse(argi->str)))
+                return Token_Move(TOKEN_BOOL,Boolean_Get(0));
+        }
+        return Token_Move(TOKEN_BOOL,Boolean_Get(1));
+    }
+    return IntraIR_Execute(ll,IR_OP_EQU,IR_TYPE_INT,args);
 }
-Token Int_Int_Handler_Leq(Scope* s,Token* op,Vector* args){
-    Token* a = (Token*)Vector_Get(args,0);
-    Token* b = (Token*)Vector_Get(args,1);
+Token Int_Int_Handler_Les(IntraIR* ll,Token* op,Vector* args){
+    if(Int_All_Const(args)){
+        Token* src = (Token*)Vector_Get(args,0);
+        Number ret = Number_Parse(src->str);
 
-    //printf("LEQ: %s <= %s\n",a->str,b->str);
-
-    Number n1 = Implementation_IntOf(s,a);
-    Number n2 = Implementation_IntOf(s,b);
-    Boolean res = n1 <= n2;
-
-    char* resstr = Boolean_Get(res);
-    return Token_Move(TOKEN_BOOL,resstr);
+        for(int i = 1;i<args->size;i++){
+            Token* argi = (Token*)Vector_Get(args,i);
+            
+            if(!(ret < Number_Parse(argi->str)))
+                return Token_Move(TOKEN_BOOL,Boolean_Get(0));
+        }
+        return Token_Move(TOKEN_BOOL,Boolean_Get(1));
+    }
+    return IntraIR_Execute(ll,IR_OP_LES,IR_TYPE_INT,args);
 }
-Token Int_Int_Handler_Grq(Scope* s,Token* op,Vector* args){
-    Token* a = (Token*)Vector_Get(args,0);
-    Token* b = (Token*)Vector_Get(args,1);
+Token Int_Int_Handler_Grt(IntraIR* ll,Token* op,Vector* args){
+    if(Int_All_Const(args)){
+        Token* src = (Token*)Vector_Get(args,0);
+        Number ret = Number_Parse(src->str);
 
-    //printf("GRQ: %s >= %s\n",a->str,b->str);
-
-    Number n1 = Implementation_IntOf(s,a);
-    Number n2 = Implementation_IntOf(s,b);
-    Boolean res = n1 >= n2;
-
-    char* resstr = Boolean_Get(res);
-    return Token_Move(TOKEN_BOOL,resstr);
+        for(int i = 1;i<args->size;i++){
+            Token* argi = (Token*)Vector_Get(args,i);
+            
+            if(!(ret > Number_Parse(argi->str)))
+                return Token_Move(TOKEN_BOOL,Boolean_Get(0));
+        }
+        return Token_Move(TOKEN_BOOL,Boolean_Get(1));
+    }
+    return IntraIR_Execute(ll,IR_OP_GRT,IR_TYPE_INT,args);
 }
-Token Int_Handler_Cast(Scope* s,Token* op,Vector* args){
-    Token* a = (Token*)Vector_Get(args,0);
+Token Int_Int_Handler_Leq(IntraIR* ll,Token* op,Vector* args){
+    if(Int_All_Const(args)){
+        Token* src = (Token*)Vector_Get(args,0);
+        Number ret = Number_Parse(src->str);
 
-    //printf("CAST: %s\n",a->str);
+        for(int i = 1;i<args->size;i++){
+            Token* argi = (Token*)Vector_Get(args,i);
+            
+            if(!(ret <= Number_Parse(argi->str)))
+                return Token_Move(TOKEN_BOOL,Boolean_Get(0));
+        }
+        return Token_Move(TOKEN_BOOL,Boolean_Get(1));
+    }
+    return IntraIR_Execute(ll,IR_OP_LEQ,IR_TYPE_INT,args);
+}
+Token Int_Int_Handler_Grq(IntraIR* ll,Token* op,Vector* args){
+    if(Int_All_Const(args)){
+        Token* src = (Token*)Vector_Get(args,0);
+        Number ret = Number_Parse(src->str);
 
-    Number res = Implementation_IntOf(s,a);
-    char* resstr = Number_Get(res);
-    return Token_Move(TOKEN_CONSTSTRING_DOUBLE,resstr);
+        for(int i = 1;i<args->size;i++){
+            Token* argi = (Token*)Vector_Get(args,i);
+            
+            if(!(ret >= Number_Parse(argi->str)))
+                return Token_Move(TOKEN_BOOL,Boolean_Get(0));
+        }
+        return Token_Move(TOKEN_BOOL,Boolean_Get(1));
+    }
+    return IntraIR_Execute(ll,IR_OP_GRQ,IR_TYPE_INT,args);
+}
+
+Token Int_Handler_Cast(IntraIR* ll,Token* op,Vector* args){
+    if(Int_All_Const(args)){
+        Token* src = (Token*)Vector_Get(args,0);
+        if(CStr_Cmp(op->str,IR_TYPE_INT))     return Token_By(TOKEN_NUMBER,src->str);
+        if(CStr_Cmp(op->str,"float"))   return Token_By(TOKEN_FLOAT,src->str);
+        if(CStr_Cmp(op->str,"str"))     return Token_By(TOKEN_CONSTSTRING_DOUBLE,src->str);
+    }
+    return IntraIR_Execute(ll,IR_OP_CAST,IR_TYPE_INT,args);
 }
 
 void Ex_Packer(ExternFunctionMap* Extern_Functions,Vector* funcs,Scope* s){//Vector<CStr>
@@ -195,8 +161,8 @@ void Ex_Packer(ExternFunctionMap* Extern_Functions,Vector* funcs,Scope* s){//Vec
             OperatorInterater_Make((CStr[]){ NULL },OperatorDefineMap_Make((OperatorDefiner[]){
                 OperatorDefiner_New(TOKEN_INTRAIR_NEG,  (Token(*)(void*,Token*,Vector*))Int_Int_Handler_Neg),
                 OperatorDefiner_New(TOKEN_CAST,         (Token(*)(void*,Token*,Vector*))Int_Handler_Cast),
-                OperatorDefiner_New(TOKEN_INIT,NULL),
-                OperatorDefiner_New(TOKEN_DESTROY,NULL),
+                //OperatorDefiner_New(TOKEN_INIT,NULL),
+                //OperatorDefiner_New(TOKEN_DESTROY,NULL),
                 OPERATORDEFINER_END
             })),
             OperatorInterater_Make((CStr[]){ "int",NULL },OperatorDefineMap_Make((OperatorDefiner[]){
