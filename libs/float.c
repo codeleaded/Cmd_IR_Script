@@ -99,7 +99,7 @@ Token Float_Float_Handler_Div(Scope* s,Token* op,Vector* args){
     Double res = 0.0;
     if(n2!=0.0) res = n1 / n2;
     else{
-        printf("[Enviroment]: Error: DIV by Zero\n");
+        printf("[Environment]: Error: DIV by Zero\n");
     }
 
     char* resstr = Double_Get(res,6);
