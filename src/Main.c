@@ -1,8 +1,8 @@
-#include "/home/codeleaded/System/Static/Library/IntraIR.h"
+#include "/home/codeleaded/System/Static/Library/IntraASM.h"
 
 int main(int argc,char** argv){
     //if(argc<=1){
-    //    printf("Missing Src File ."INTRAIR_TYPE"!\n");
+    //    printf("Missing Src File ."INTRAASM_TYPE"!\n");
     //    return 1;
     //}
     //if(argc<=2){
@@ -10,10 +10,10 @@ int main(int argc,char** argv){
     //    return 1;
     //}
 
-    IntraIR ll = IntraIR_New("./bin","./code/Main.ll","./code/Main.iralx",64);
-    //IntraIR_Print(&ll);
-    IntraIR_Build(&ll);
-    IntraIR_Free(&ll);
+    IntraASM ll = IntraASM_New("./bin","./code/Main.ll","./code/Main.iralx",64);
+    //IntraASM_Print(&ll);
+    IntraASM_Build(&ll);
+    IntraASM_Free(&ll);
     
     return 0;
 }

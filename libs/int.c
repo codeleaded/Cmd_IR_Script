@@ -1,6 +1,6 @@
 #include "/home/codeleaded/System/Static/Library/AlxCallStack.h"
 #include "/home/codeleaded/System/Static/Library/AlxExternFunctions.h"
-#include "/home/codeleaded/System/Static/Library/IntraIR.h"
+#include "/home/codeleaded/System/Static/Library/IntraASM.h"
 
 char Int_All_Const(Vector* args){
     if(args->size <= 0) return 0;
@@ -14,10 +14,10 @@ char Int_All_Const(Vector* args){
     return 1;
 }
 
-Token Int_Int_Handler_Ass(IntraIR* ll,Token* op,Vector* args){
-    return IntraIR_ExecuteAss(ll,IR_OP_ASS,IR_TYPE_INT,args);
+Token Int_Int_Handler_Ass(IntraASM* ll,Token* op,Vector* args){
+    return IntraASM_ExecuteAss(ll,ASM_OP_ASS,ASM_TYPE_INT,args);
 }
-Token Int_Int_Handler_Add(IntraIR* ll,Token* op,Vector* args){
+Token Int_Int_Handler_Add(IntraASM* ll,Token* op,Vector* args){
     if(Int_All_Const(args)){
         Token* src = (Token*)Vector_Get(args,0);
         Number ret = Number_Parse(src->str);
@@ -27,9 +27,9 @@ Token Int_Int_Handler_Add(IntraIR* ll,Token* op,Vector* args){
         }
         return Token_Move(TOKEN_NUMBER,Number_Get(ret));
     }
-    return IntraIR_Execute(ll,IR_OP_ADD,IR_TYPE_INT,args);
+    return IntraASM_Execute(ll,ASM_OP_ADD,ASM_TYPE_INT,args);
 }
-Token Int_Int_Handler_Sub(IntraIR* ll,Token* op,Vector* args){
+Token Int_Int_Handler_Sub(IntraASM* ll,Token* op,Vector* args){
     if(Int_All_Const(args)){
         Token* src = (Token*)Vector_Get(args,0);
         Number ret = Number_Parse(src->str);
@@ -39,9 +39,9 @@ Token Int_Int_Handler_Sub(IntraIR* ll,Token* op,Vector* args){
         }
         return Token_Move(TOKEN_NUMBER,Number_Get(ret));
     }
-    return IntraIR_Execute(ll,IR_OP_SUB,IR_TYPE_INT,args);
+    return IntraASM_Execute(ll,ASM_OP_SUB,ASM_TYPE_INT,args);
 }
-Token Int_Int_Handler_Mul(IntraIR* ll,Token* op,Vector* args){
+Token Int_Int_Handler_Mul(IntraASM* ll,Token* op,Vector* args){
     if(Int_All_Const(args)){
         Token* src = (Token*)Vector_Get(args,0);
         Number ret = Number_Parse(src->str);
@@ -51,9 +51,9 @@ Token Int_Int_Handler_Mul(IntraIR* ll,Token* op,Vector* args){
         }
         return Token_Move(TOKEN_NUMBER,Number_Get(ret));
     }
-    return IntraIR_Execute(ll,IR_OP_MUL,IR_TYPE_INT,args);
+    return IntraASM_Execute(ll,ASM_OP_MUL,ASM_TYPE_INT,args);
 }
-Token Int_Int_Handler_Div(IntraIR* ll,Token* op,Vector* args){
+Token Int_Int_Handler_Div(IntraASM* ll,Token* op,Vector* args){
     if(Int_All_Const(args)){
         Token* src = (Token*)Vector_Get(args,0);
         Number ret = Number_Parse(src->str);
@@ -63,13 +63,13 @@ Token Int_Int_Handler_Div(IntraIR* ll,Token* op,Vector* args){
         }
         return Token_Move(TOKEN_NUMBER,Number_Get(ret));
     }
-    return IntraIR_Execute(ll,IR_OP_DIV,IR_TYPE_INT,args);
+    return IntraASM_Execute(ll,ASM_OP_DIV,ASM_TYPE_INT,args);
 }
-Token Int_Int_Handler_Neg(IntraIR* ll,Token* op,Vector* args){
-    return IntraIR_Execute(ll,IR_OP_NEG,IR_TYPE_INT,args);
+Token Int_Int_Handler_Neg(IntraASM* ll,Token* op,Vector* args){
+    return IntraASM_Execute(ll,ASM_OP_NEG,ASM_TYPE_INT,args);
 }
 
-Token Int_Int_Handler_Equ(IntraIR* ll,Token* op,Vector* args){
+Token Int_Int_Handler_Equ(IntraASM* ll,Token* op,Vector* args){
     if(Int_All_Const(args)){
         Token* src = (Token*)Vector_Get(args,0);
         Number ret = Number_Parse(src->str);
@@ -82,9 +82,9 @@ Token Int_Int_Handler_Equ(IntraIR* ll,Token* op,Vector* args){
         }
         return Token_Move(TOKEN_BOOL,Boolean_Get(1));
     }
-    return IntraIR_Execute(ll,IR_OP_EQU,IR_TYPE_INT,args);
+    return IntraASM_Execute(ll,ASM_OP_EQU,ASM_TYPE_INT,args);
 }
-Token Int_Int_Handler_Les(IntraIR* ll,Token* op,Vector* args){
+Token Int_Int_Handler_Les(IntraASM* ll,Token* op,Vector* args){
     if(Int_All_Const(args)){
         Token* src = (Token*)Vector_Get(args,0);
         Number ret = Number_Parse(src->str);
@@ -97,9 +97,9 @@ Token Int_Int_Handler_Les(IntraIR* ll,Token* op,Vector* args){
         }
         return Token_Move(TOKEN_BOOL,Boolean_Get(1));
     }
-    return IntraIR_Execute(ll,IR_OP_LES,IR_TYPE_INT,args);
+    return IntraASM_Execute(ll,ASM_OP_LES,ASM_TYPE_INT,args);
 }
-Token Int_Int_Handler_Grt(IntraIR* ll,Token* op,Vector* args){
+Token Int_Int_Handler_Grt(IntraASM* ll,Token* op,Vector* args){
     if(Int_All_Const(args)){
         Token* src = (Token*)Vector_Get(args,0);
         Number ret = Number_Parse(src->str);
@@ -112,9 +112,9 @@ Token Int_Int_Handler_Grt(IntraIR* ll,Token* op,Vector* args){
         }
         return Token_Move(TOKEN_BOOL,Boolean_Get(1));
     }
-    return IntraIR_Execute(ll,IR_OP_GRT,IR_TYPE_INT,args);
+    return IntraASM_Execute(ll,ASM_OP_GRT,ASM_TYPE_INT,args);
 }
-Token Int_Int_Handler_Leq(IntraIR* ll,Token* op,Vector* args){
+Token Int_Int_Handler_Leq(IntraASM* ll,Token* op,Vector* args){
     if(Int_All_Const(args)){
         Token* src = (Token*)Vector_Get(args,0);
         Number ret = Number_Parse(src->str);
@@ -127,9 +127,9 @@ Token Int_Int_Handler_Leq(IntraIR* ll,Token* op,Vector* args){
         }
         return Token_Move(TOKEN_BOOL,Boolean_Get(1));
     }
-    return IntraIR_Execute(ll,IR_OP_LEQ,IR_TYPE_INT,args);
+    return IntraASM_Execute(ll,ASM_OP_LEQ,ASM_TYPE_INT,args);
 }
-Token Int_Int_Handler_Grq(IntraIR* ll,Token* op,Vector* args){
+Token Int_Int_Handler_Grq(IntraASM* ll,Token* op,Vector* args){
     if(Int_All_Const(args)){
         Token* src = (Token*)Vector_Get(args,0);
         Number ret = Number_Parse(src->str);
@@ -142,43 +142,43 @@ Token Int_Int_Handler_Grq(IntraIR* ll,Token* op,Vector* args){
         }
         return Token_Move(TOKEN_BOOL,Boolean_Get(1));
     }
-    return IntraIR_Execute(ll,IR_OP_GRQ,IR_TYPE_INT,args);
+    return IntraASM_Execute(ll,ASM_OP_GRQ,ASM_TYPE_INT,args);
 }
 
-Token Int_Handler_Cast(IntraIR* ll,Token* op,Vector* args){
+Token Int_Handler_Cast(IntraASM* ll,Token* op,Vector* args){
     if(Int_All_Const(args)){
         Token* src = (Token*)Vector_Get(args,0);
-        if(CStr_Cmp(op->str,IR_TYPE_INT))     return Token_By(TOKEN_NUMBER,src->str);
+        if(CStr_Cmp(op->str,ASM_TYPE_INT))     return Token_By(TOKEN_NUMBER,src->str);
         if(CStr_Cmp(op->str,"float"))   return Token_By(TOKEN_FLOAT,src->str);
         if(CStr_Cmp(op->str,"str"))     return Token_By(TOKEN_CONSTSTRING_DOUBLE,src->str);
     }
-    return IntraIR_Execute(ll,IR_OP_CAST,IR_TYPE_INT,args);
+    return IntraASM_Execute(ll,ASM_OP_CAST,ASM_TYPE_INT,args);
 }
 
 void Ex_Packer(ExternFunctionMap* Extern_Functions,Vector* funcs,Scope* s){//Vector<CStr>
     TypeMap_PushContained(&s->types,funcs,
-        Type_New("int",sizeof(VariableIR),OperatorInterationMap_Make((OperatorInterater[]){
+        Type_New("int",sizeof(VariableASM),OperatorInterationMap_Make((OperatorInterater[]){
             OperatorInterater_Make((CStr[]){ NULL },OperatorDefineMap_Make((OperatorDefiner[]){
-                OperatorDefiner_New(TOKEN_INTRAIR_NEG,  (Token(*)(void*,Token*,Vector*))Int_Int_Handler_Neg),
+                OperatorDefiner_New(TOKEN_INTRAASM_NEG,  (Token(*)(void*,Token*,Vector*))Int_Int_Handler_Neg),
                 OperatorDefiner_New(TOKEN_CAST,         (Token(*)(void*,Token*,Vector*))Int_Handler_Cast),
                 //OperatorDefiner_New(TOKEN_INIT,NULL),
                 //OperatorDefiner_New(TOKEN_DESTROY,NULL),
                 OPERATORDEFINER_END
             })),
             OperatorInterater_Make((CStr[]){ "int",NULL },OperatorDefineMap_Make((OperatorDefiner[]){
-                OperatorDefiner_New(TOKEN_INTRAIR_ASS,  (Token(*)(void*,Token*,Vector*))Int_Int_Handler_Ass),
-                OperatorDefiner_New(TOKEN_INTRAIR_ADD,  (Token(*)(void*,Token*,Vector*))Int_Int_Handler_Add),
-                OperatorDefiner_New(TOKEN_INTRAIR_SUB,  (Token(*)(void*,Token*,Vector*))Int_Int_Handler_Sub),
-                OperatorDefiner_New(TOKEN_INTRAIR_MUL,  (Token(*)(void*,Token*,Vector*))Int_Int_Handler_Mul),
-                OperatorDefiner_New(TOKEN_INTRAIR_DIV,  (Token(*)(void*,Token*,Vector*))Int_Int_Handler_Div),
-                OperatorDefiner_New(TOKEN_INTRAIR_EQU,  (Token(*)(void*,Token*,Vector*))Int_Int_Handler_Equ),
-                OperatorDefiner_New(TOKEN_INTRAIR_LES,  (Token(*)(void*,Token*,Vector*))Int_Int_Handler_Les),
-                OperatorDefiner_New(TOKEN_INTRAIR_GRT,  (Token(*)(void*,Token*,Vector*))Int_Int_Handler_Grt),
-                OperatorDefiner_New(TOKEN_INTRAIR_LEQ,  (Token(*)(void*,Token*,Vector*))Int_Int_Handler_Leq),
-                OperatorDefiner_New(TOKEN_INTRAIR_GRQ,  (Token(*)(void*,Token*,Vector*))Int_Int_Handler_Grq),
+                OperatorDefiner_New(TOKEN_INTRAASM_ASS,  (Token(*)(void*,Token*,Vector*))Int_Int_Handler_Ass),
+                OperatorDefiner_New(TOKEN_INTRAASM_ADD,  (Token(*)(void*,Token*,Vector*))Int_Int_Handler_Add),
+                OperatorDefiner_New(TOKEN_INTRAASM_SUB,  (Token(*)(void*,Token*,Vector*))Int_Int_Handler_Sub),
+                OperatorDefiner_New(TOKEN_INTRAASM_MUL,  (Token(*)(void*,Token*,Vector*))Int_Int_Handler_Mul),
+                OperatorDefiner_New(TOKEN_INTRAASM_DIV,  (Token(*)(void*,Token*,Vector*))Int_Int_Handler_Div),
+                OperatorDefiner_New(TOKEN_INTRAASM_EQU,  (Token(*)(void*,Token*,Vector*))Int_Int_Handler_Equ),
+                OperatorDefiner_New(TOKEN_INTRAASM_LES,  (Token(*)(void*,Token*,Vector*))Int_Int_Handler_Les),
+                OperatorDefiner_New(TOKEN_INTRAASM_GRT,  (Token(*)(void*,Token*,Vector*))Int_Int_Handler_Grt),
+                OperatorDefiner_New(TOKEN_INTRAASM_LEQ,  (Token(*)(void*,Token*,Vector*))Int_Int_Handler_Leq),
+                OperatorDefiner_New(TOKEN_INTRAASM_GRQ,  (Token(*)(void*,Token*,Vector*))Int_Int_Handler_Grq),
                 OPERATORDEFINER_END
             })),
             OPERATORINTERATER_END
-        }),VariableIR_Destroyer,VariableIR_Cpyer)
+        }),VariableASM_Destroyer,VariableASM_Cpyer)
     );
 }
