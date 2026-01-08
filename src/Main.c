@@ -6,11 +6,11 @@ int main(int argc,char** argv){
     //    return 1;
     //}
     //if(argc<=2){
-    //    printf("Missing Output File .iralx!\n");
+    //    printf("Missing Output File .asmalx!\n");
     //    return 1;
     //}
 
-    IntraASM ll = IntraASM_New("./bin","./code/Main.ll","./code/Main.iralx",64);
+    IntraASM ll = IntraASM_New("./bin","./code/Main.ll","./code/Main.asmalx",64);
     //IntraASM_Print(&ll);
     IntraASM_Build(&ll);
     IntraASM_Free(&ll);
