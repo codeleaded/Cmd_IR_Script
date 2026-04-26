@@ -1,193 +1,64 @@
-# Cmd_ASM_Script
+# Project README
 
+## Overview
+This project is a collection of C/C++ libraries and scripts that support the development of custom languages. The primary focus is on creating a simple scripting environment where users can define their own types, functions, and variables with specific behaviors defined through custom operators.
 
-## Project Overview
+## Features
+- **Custom Types**: Users can define new types with specific operator overloads.
+- **Variable Assignment**: Support for assigning values to variables using custom assignment operators.
+- **Function Pointers**: Allow storing function pointers in variables and use them later.
+- **Memory Management**: Custom allocators and destructors for dynamically allocated data.
 
-This project implements specialized functionality related to asm_script.
-
-## Core Components
-
-### Main Functionality
-- Implements core algorithms for asm_script
-- Efficient data structures
-- Optimized performance
-- Clean code organization
-
-### Technical Features
-- C/C++ implementation
-- Dynamic memory management
-- Platform-independent design
-- Real-time capable
-
-### Architecture
-- Module separation
-- Clear interface design
-- Proper abstraction layers
-- Extensible design
-
-## Use Cases
-- Production systems
-- Educational purposes
-- Research applications
-- Performance-critical operations
-
-## Performance Characteristics
-- Optimized algorithms
-- Efficient memory usage
-- Scalable architecture
-- Minimal overhead
-
-## Implementation Quality
-- Well-organized code
-- Meaningful naming
-- Proper error handling
-- Memory management
-
-## Build and Deployment
-- Standard C/C++ compilation
-- Makefile-based building
-- Cross-platform support
-- Easy integration
-
-
-## Building the Project
-
-### Prerequisites
-- C/C++ Compiler (GCC, Clang, or MSVC)
-- Make utility
-- Standard development tools
-
-### Build Steps
-
-1. Navigate to project directory:
-```bash
-cd Cmd_ASM_Script
+## Project Structure
 ```
-
-2. Build the project:
-```bash
-make -f Makefile.(os) all
-```
-
-3. For clean rebuild:
-```bash
-make -f Makefile.(os) clean
-make -f Makefile.(os) all
-```
-
-4. If there are ./bin and ./libs directories, build libs with:
-```bash
-make -f Makefile.(os) cleanlib
-make -f Makefile.(os) lib
-```
-
-### Build Options
-```bash
-make -f Makefile.(os) all         # build output
-make -f Makefile.(os) do        # build + exe output
-make -f Makefile.(os) clean   # Remove build artifacts
-```
-
-## Running the Project
-
-Execute the compiled binary:
-
-```bash
-./build/Main(.exe)
-```
-
-Or using make:
-```bash
-make -f Makefile.(os) exe
-```
-
-## Project Organization
-
-```
-Cmd_ASM_Script/
-├── src/
+<Project>/
+├── build/              # .exe files produced by Main.c
+├── bin/                # .so / .dll produced by *.c in libs
+├── libs/               # *.c for bin
+│   ├── func.c          # C code for handling function pointers
+│   ├── var.c           # C code for handling variables
+│   └── type.c          # C code for defining and managing types
+├── lib/                # librarys for my own languages
+├── code/               # scripts from my custom languages for example .rex, .ll, .omml
+├── data/               # Datafile for example .txt or dumped files
+├── assets/             # images and sound files
+├── src/                # src code
 │   ├── Main.c          # Entry point
-│   └── *.c             # Implementation files
-├── Makefile            # Build configuration
+│   └── *.h             # stand alone Header-based C-files, without *.c files that implement it
+├── Makefile.linux      # Linux Build configuration
+├── Makefile.windows    # Windows Build configuration
+├── Makefile.wine       # Wine Build configuration
 └── README.md           # This file
 ```
 
-## Technical Details
+### Prerequisites
+- C/C++ Compiler and Debugger (GCC, Clang)
+- Make utility
+- Standard development tools
 
-### Language: C/C++
-- Performance-oriented
-- Direct hardware access where needed
-- Memory efficient
-- Widely portable
+## Build & Run
+To build the project, use one of the provided makefiles depending on your operating system. Here are the steps for building on Linux:
 
-### Key Technologies
-- Standard C library
-- System-specific libraries as needed
-- Algorithm optimization
-- Efficient data structures
+1. Navigate to the project directory:
+   ```sh
+   cd <Project>
+   ```
 
-### Code Quality
-- Clean, readable implementation
-- Proper error handling
-- Resource management
-- Well-documented algorithms
+2. Build the project using Makefile.linux:
+   ```sh
+   make -f Makefile.linux all
+   ```
 
-## Development Notes
+3. To execute the built application, run:
+   ```sh
+   make -f Makefile.linux exe
+   ```
 
-### Architecture Decisions
-- Modular design for reusability
-- Efficient algorithms for performance
-- Clear separation of concerns
-- Extensible structure
+For a clean rebuild and execution on Linux, you can use:
+```sh
+make -f Makefile.linux clean
+make -f Makefile.linux all
+make -f Makefile.linux exe
+```
 
-### Performance Optimizations
-- Algorithm efficiency
-- Memory layout optimization
-- Cache-conscious programming
-- Minimal overhead
-
-### Portability
-- Cross-platform compatible
-- Platform-specific optimizations where possible
-- Standard library usage
-- No external dependencies (where feasible)
-
-## Troubleshooting
-
-### Build Issues
-- Ensure compiler is installed
-- Check file paths and permissions
-- Verify Make installation
-- Review compiler error messages
-
-### Runtime Issues
-- Check input data validity
-- Verify file accessibility
-- Ensure sufficient memory
-- Review output format
-
-### Performance Issues
-- Check compiler optimization flags
-- Profile hot code paths
-- Review algorithm complexity
-- Consider input size
-
-## Future Improvements
-
-Potential enhancements:
-- Additional optimization opportunities
-- Extended functionality
-- Platform-specific optimizations
-- Performance profiling
-
-## References
-
-For technical background:
-- Algorithm textbooks
-- Computer science references
-- Language documentation
-- Online educational resources
-
----
-
-*Project implementing practical algorithms and data structures in C/C++*
+The same process applies to Windows and other platforms with the appropriate makefile.
