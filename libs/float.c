@@ -13,9 +13,9 @@ Double Implementation_FloatOf(Scope* s,Token* a){
             printf("[Float]: Impl -> 1. Arg: Variable %s doesn't exist!\n",a->str);
         }
     }else if(a->tt==TOKEN_FLOAT){
-        n = Double_Parse(a->str,1);
+        n = a->v_f64;
     }else if(a->tt==TOKEN_NUMBER){
-        n = (Double)Number_Parse(a->str);
+        n = (Double)a->v_i64;
     }else{
         printf("[Float]: Impl -> 1. Arg: %s is not a float type!\n",a->str);
     }

@@ -20,48 +20,48 @@ Token Int_Int_Handler_Ass(IntraASM* ll,Token* op,Vector* args){
 Token Int_Int_Handler_Add(IntraASM* ll,Token* op,Vector* args){
     if(Int_All_Const(args)){
         Token* src = (Token*)Vector_Get(args,0);
-        Number ret = Number_Parse(src->str);
+        Number ret = src->v_i64;
         for(int i = 1;i<args->size;i++){
             Token* argi = (Token*)Vector_Get(args,i);
-            ret += Number_Parse(argi->str);
+            ret += argi->v_i64;
         }
-        return Token_Move(TOKEN_NUMBER,Number_Get(ret));
+        return Token_New_I64(TOKEN_NUMBER,ret);
     }
     return IntraASM_Execute(ll,ASM_OP_ADD,ASM_TYPE_INT,args);
 }
 Token Int_Int_Handler_Sub(IntraASM* ll,Token* op,Vector* args){
     if(Int_All_Const(args)){
         Token* src = (Token*)Vector_Get(args,0);
-        Number ret = Number_Parse(src->str);
+        Number ret = src->v_i64;
         for(int i = 1;i<args->size;i++){
             Token* argi = (Token*)Vector_Get(args,i);
-            ret -= Number_Parse(argi->str);
+            ret -= argi->v_i64;
         }
-        return Token_Move(TOKEN_NUMBER,Number_Get(ret));
+        return Token_New_I64(TOKEN_NUMBER,ret);
     }
     return IntraASM_Execute(ll,ASM_OP_SUB,ASM_TYPE_INT,args);
 }
 Token Int_Int_Handler_Mul(IntraASM* ll,Token* op,Vector* args){
     if(Int_All_Const(args)){
         Token* src = (Token*)Vector_Get(args,0);
-        Number ret = Number_Parse(src->str);
+        Number ret = src->v_i64;
         for(int i = 1;i<args->size;i++){
             Token* argi = (Token*)Vector_Get(args,i);
-            ret *= Number_Parse(argi->str);
+            ret *= argi->v_i64;
         }
-        return Token_Move(TOKEN_NUMBER,Number_Get(ret));
+        return Token_New_I64(TOKEN_NUMBER,ret);
     }
     return IntraASM_Execute(ll,ASM_OP_MUL,ASM_TYPE_INT,args);
 }
 Token Int_Int_Handler_Div(IntraASM* ll,Token* op,Vector* args){
     if(Int_All_Const(args)){
         Token* src = (Token*)Vector_Get(args,0);
-        Number ret = Number_Parse(src->str);
+        Number ret = src->v_i64;
         for(int i = 1;i<args->size;i++){
             Token* argi = (Token*)Vector_Get(args,i);
-            ret /= Number_Parse(argi->str);
+            ret /= argi->v_i64;
         }
-        return Token_Move(TOKEN_NUMBER,Number_Get(ret));
+        return Token_New_I64(TOKEN_NUMBER,ret);
     }
     return IntraASM_Execute(ll,ASM_OP_DIV,ASM_TYPE_INT,args);
 }
@@ -72,12 +72,12 @@ Token Int_Int_Handler_Neg(IntraASM* ll,Token* op,Vector* args){
 Token Int_Int_Handler_Equ(IntraASM* ll,Token* op,Vector* args){
     if(Int_All_Const(args)){
         Token* src = (Token*)Vector_Get(args,0);
-        Number ret = Number_Parse(src->str);
+        Number ret = src->v_i64;
 
         for(int i = 1;i<args->size;i++){
             Token* argi = (Token*)Vector_Get(args,i);
             
-            if(!(ret == Number_Parse(argi->str)))
+            if(!(ret == argi->v_i64))
                 return Token_Move(TOKEN_BOOL,Boolean_Get(0));
         }
         return Token_Move(TOKEN_BOOL,Boolean_Get(1));
@@ -87,12 +87,12 @@ Token Int_Int_Handler_Equ(IntraASM* ll,Token* op,Vector* args){
 Token Int_Int_Handler_Les(IntraASM* ll,Token* op,Vector* args){
     if(Int_All_Const(args)){
         Token* src = (Token*)Vector_Get(args,0);
-        Number ret = Number_Parse(src->str);
+        Number ret = src->v_i64;
 
         for(int i = 1;i<args->size;i++){
             Token* argi = (Token*)Vector_Get(args,i);
             
-            if(!(ret < Number_Parse(argi->str)))
+            if(!(ret < argi->v_i64))
                 return Token_Move(TOKEN_BOOL,Boolean_Get(0));
         }
         return Token_Move(TOKEN_BOOL,Boolean_Get(1));
@@ -102,12 +102,12 @@ Token Int_Int_Handler_Les(IntraASM* ll,Token* op,Vector* args){
 Token Int_Int_Handler_Grt(IntraASM* ll,Token* op,Vector* args){
     if(Int_All_Const(args)){
         Token* src = (Token*)Vector_Get(args,0);
-        Number ret = Number_Parse(src->str);
+        Number ret = src->v_i64;
 
         for(int i = 1;i<args->size;i++){
             Token* argi = (Token*)Vector_Get(args,i);
             
-            if(!(ret > Number_Parse(argi->str)))
+            if(!(ret > argi->v_i64))
                 return Token_Move(TOKEN_BOOL,Boolean_Get(0));
         }
         return Token_Move(TOKEN_BOOL,Boolean_Get(1));
@@ -117,12 +117,12 @@ Token Int_Int_Handler_Grt(IntraASM* ll,Token* op,Vector* args){
 Token Int_Int_Handler_Leq(IntraASM* ll,Token* op,Vector* args){
     if(Int_All_Const(args)){
         Token* src = (Token*)Vector_Get(args,0);
-        Number ret = Number_Parse(src->str);
+        Number ret = src->v_i64;
 
         for(int i = 1;i<args->size;i++){
             Token* argi = (Token*)Vector_Get(args,i);
             
-            if(!(ret <= Number_Parse(argi->str)))
+            if(!(ret <= argi->v_i64))
                 return Token_Move(TOKEN_BOOL,Boolean_Get(0));
         }
         return Token_Move(TOKEN_BOOL,Boolean_Get(1));
@@ -132,12 +132,12 @@ Token Int_Int_Handler_Leq(IntraASM* ll,Token* op,Vector* args){
 Token Int_Int_Handler_Grq(IntraASM* ll,Token* op,Vector* args){
     if(Int_All_Const(args)){
         Token* src = (Token*)Vector_Get(args,0);
-        Number ret = Number_Parse(src->str);
+        Number ret = src->v_i64;
 
         for(int i = 1;i<args->size;i++){
             Token* argi = (Token*)Vector_Get(args,i);
             
-            if(!(ret >= Number_Parse(argi->str)))
+            if(!(ret >= argi->v_i64))
                 return Token_Move(TOKEN_BOOL,Boolean_Get(0));
         }
         return Token_Move(TOKEN_BOOL,Boolean_Get(1));

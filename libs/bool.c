@@ -13,9 +13,9 @@ Boolean Implementation_BooleanOf(Scope* s,Token* a){
             printf("[Boolean]: Impl -> 1. Arg: Variable %s doesn't exist!\n",a->str);
         }
     }else if(a->tt==TOKEN_BOOL){
-        n = Boolean_Parse(a->str);
+        n = a->v_b1;
     }else if(a->tt == TOKEN_NUMBER){
-        n = Number_Parse(a->str) != 0;
+        n = a->v_i64 != 0;
     }else{
         printf("[Boolean]: Impl -> 1. Arg: %s is not a bool type!\n",a->str);
     }
@@ -38,7 +38,7 @@ Token Boolean_Boolean_Handler_Ass(Scope* s,Token* op,Vector* args){
             printf("[Boolean_Ass]: 2. Arg: Variable %s doesn't exist!\n",b->str);
         }
     }else if(b->tt==TOKEN_BOOL){
-        n2 = Boolean_Parse(b->str);
+        n2 = b->v_b1;
     }else{
         printf("[Boolean_Ass]: 2. Arg: %s is not a bool type!\n",b->str);
     }
